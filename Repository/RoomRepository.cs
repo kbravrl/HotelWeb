@@ -7,9 +7,16 @@ namespace HotelWeb.Repository;
 
 public class RoomRepository(ApplicationDbContext db) : IRoomRepository
 {
-    public Task<List<Room>> GetAllAsync()
-        => db.Rooms.Include(x => x.RoomType).ToListAsync();
+    public async Task<List<Room>> GetAllAsync()
+        => await db.Rooms
+            .AsNoTracking()
+            .Include(r => r.RoomType)
+            .OrderBy(r => r.RoomNumber)
+            .ToListAsync();
 
-    public Task<Room?> GetByIdAsync(int id)
-        => db.Rooms.Include(x => x.RoomType).FirstOrDefaultAsync(x => x.Id == id);
+    public async Task<Room?> GetByIdAsync(int id)
+        => await db.Rooms
+            .AsNoTracking()
+            .Include(r => r.RoomType)
+            .FirstOrDefaultAsync(r => r.Id == id);
 }
