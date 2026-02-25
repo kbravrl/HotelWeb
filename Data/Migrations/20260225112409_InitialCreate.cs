@@ -6,10 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace HotelWeb.Migrations
+namespace HotelWeb.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -202,7 +202,7 @@ namespace HotelWeb.Migrations
                     RoomNumber = table.Column<string>(type: "text", nullable: false),
                     RoomTypeId = table.Column<int>(type: "integer", nullable: false),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
-                    BasePrice = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "numeric", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -212,6 +212,31 @@ namespace HotelWeb.Migrations
                         name: "FK_Rooms_RoomTypes_RoomTypeId",
                         column: x => x.RoomTypeId,
                         principalTable: "RoomTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reservations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoomId = table.Column<int>(type: "integer", nullable: false),
+                    CheckIn = table.Column<DateOnly>(type: "date", nullable: false),
+                    CheckOut = table.Column<DateOnly>(type: "date", nullable: false),
+                    GuestCount = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservations_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -242,6 +267,11 @@ namespace HotelWeb.Migrations
                     { 9, 5900m, 4, "302", 3, 0 },
                     { 10, 6100m, 4, "303", 3, 2 }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Reservations",
+                columns: new[] { "Id", "CheckIn", "CheckOut", "CreatedAt", "GuestCount", "RoomId", "Status", "TotalPrice" },
+                values: new object[] { 1, new DateOnly(2026, 2, 26), new DateOnly(2026, 3, 1), new DateTime(2026, 2, 20, 0, 0, 0, 0, DateTimeKind.Utc), 2, 4, 1, 0m });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -286,10 +316,9 @@ namespace HotelWeb.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rooms_RoomNumber",
-                table: "Rooms",
-                column: "RoomNumber",
-                unique: true);
+                name: "IX_Reservations_RoomId",
+                table: "Reservations",
+                column: "RoomId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rooms_RoomTypeId",
@@ -319,13 +348,16 @@ namespace HotelWeb.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Rooms");
+                name: "Reservations");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Rooms");
 
             migrationBuilder.DropTable(
                 name: "RoomTypes");

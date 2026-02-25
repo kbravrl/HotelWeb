@@ -5,64 +5,174 @@
 
 <h3>Rooms</h3>
 
-<RadzenCard Style="margin-bottom:12px;">
-    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <RadzenTextBox Placeholder="Search room no..." Style="width:240px" @bind-Value="search" />
-        <RadzenDropDown Data="@statuses" Placeholder="Status" Style="width:180px"
-                        AllowClear="true" @bind-Value="selectedStatus" />
-        <RadzenButton Text="Clear" ButtonStyle="ButtonStyle.Light" Click="@ClearFilters" />
+<RadzenCard Style="margin-bottom:16px;">
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
+
+        <div>
+            <RadzenLabel Text="Room No" />
+            <RadzenTextBox Style="width:160px"
+                           @bind-Value="roomNo" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Check-in" />
+            <RadzenDatePicker Style="width:160px"
+                              @bind-Value="checkIn"
+                              DateFormat="dd/MM/yyyy" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Check-out" />
+            <RadzenDatePicker Style="width:160px"
+                              @bind-Value="checkOut"
+                              DateFormat="dd/MM/yyyy" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Guests" />
+            <RadzenNumeric Style="width:120px"
+                           @bind-Value="guestCount"
+                           Min="1" Max="10" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Room Type" />
+            <RadzenDropDown Data="@roomTypes"
+                            TextProperty="Name"
+                            ValueProperty="Id"
+                            Style="width:180px"
+                            AllowClear="true"
+                            @bind-Value="selectedRoomTypeId" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Status" />
+            <RadzenDropDown Data="@statuses"
+                            Style="width:160px"
+                            AllowClear="true"
+                            @bind-Value="selectedStatus" />
+        </div>
+
+        <RadzenButton Text="Search"
+                      Icon="search"
+                      Click="@DoSearch" />
+
+        <RadzenButton Text="Clear"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@Clear" />
+
     </div>
 </RadzenCard>
 
-<RadzenDataGrid Data="@filteredRooms" TItem="Room" AllowPaging="true" PageSize="8"
-                AllowSorting="true" RowSelect="@OnRowSelect">
+<RadzenDataGrid Data="@rooms"
+                TItem="Room"
+                AllowPaging="true"
+                PageSize="8"
+                AllowSorting="true"
+                RowSelect="@OnRowSelect">
+
     <Columns>
-        <RadzenDataGridColumn TItem="Room" Property="RoomNumber" Title="Room No" />
-        <RadzenDataGridColumn TItem="Room" Title="Type">
-            <Template Context="r">@r.RoomType?.Name</Template>
+
+        <RadzenDataGridColumn TItem="Room"
+                              Property="RoomNumber"
+                              Title="Room No" />
+
+        <RadzenDataGridColumn TItem="Room"
+                              Title="Type">
+            <Template Context="r">
+                @r.RoomType?.Name
+            </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Room" Property="Capacity" Title="Capacity" />
-        <RadzenDataGridColumn TItem="Room" Property="BasePrice" Title="Price/Night">
-            <Template Context="r">@($"{r.BasePrice:n0} ₺")</Template>
+
+        <RadzenDataGridColumn TItem="Room"
+                              Property="Capacity"
+                              Title="Capacity" />
+
+        <RadzenDataGridColumn TItem="Room"
+                              Property="BasePrice"
+                              Title="Price/Night">
+            <Template Context="r">
+                @($"{r.BasePrice:n0} ₺")
+            </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Room" Property="Status" Title="Status">
+
+        <RadzenDataGridColumn TItem="Room"
+                              Property="Status"
+                              Title="Status">
             <Template Context="r">
                 <RadzenBadge Text="@r.Status.ToString()" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Room" Title="">
+
+        <RadzenDataGridColumn TItem="Room"
+                              Title="">
             <Template Context="r">
-                <RadzenButton Text="Detail" Size="ButtonSize.Small"
+                <RadzenButton Text="Detail"
+                              Size="ButtonSize.Small"
                               Click="@(() => _navigationManager.NavigateTo($"/rooms/{r.Id}"))" />
             </Template>
         </RadzenDataGridColumn>
+
     </Columns>
 </RadzenDataGrid>
 
 @code {
-    private List<Room> rooms = new();
-    private string? search;
-    private string? selectedStatus;
 
-    private readonly List<string> statuses = ["Available", "Occupied", "Cleaning", "Maintenance"];
+    private List<Room> rooms = new();
+    private List<RoomType> roomTypes = new();
+
+    private string? roomNo;
+    private int? selectedRoomTypeId;
+    private RoomStatus? selectedStatus;
+
+    private int guestCount = 1;
+
+    private DateTime? checkIn;
+    private DateTime? checkOut;
+
+    private readonly List<RoomStatus> statuses =
+        Enum.GetValues<RoomStatus>().ToList();
 
     protected override async Task OnInitializedAsync()
     {
-        rooms = await _roomService.GetRoomsAsync();
+        roomTypes = await _roomService.GetRoomTypesAsync();
+        await DoSearch();
     }
 
-    private IEnumerable<Room> filteredRooms => rooms.Where(r =>
+    private async Task DoSearch()
     {
-        var okSearch = string.IsNullOrWhiteSpace(search) || r.RoomNumber.Contains(search.Trim());
-        var okStatus = string.IsNullOrWhiteSpace(selectedStatus) || r.Status.ToString() == selectedStatus;
-        return okSearch && okStatus;
-    });
+        if (checkIn.HasValue && checkOut.HasValue && checkOut.Value.Date <= checkIn.Value.Date)
+        {
+            return;
+        }
 
-    private void ClearFilters()
+        var filter = new RoomSearchFilter
+        {
+            RoomNumberQuery = roomNo,
+            RoomTypeId = selectedRoomTypeId,
+            Status = selectedStatus,
+            GuestCount = guestCount,
+            CheckIn = checkIn.HasValue ? DateOnly.FromDateTime(checkIn.Value) : null,
+            CheckOut = checkOut.HasValue ? DateOnly.FromDateTime(checkOut.Value) : null
+        };
+
+        rooms = await _roomService.SearchRoomsAsync(filter);
+    }
+
+    private async Task Clear()
     {
-        search = null;
+        roomNo = null;
+        selectedRoomTypeId = null;
         selectedStatus = null;
+        guestCount = 1;
+        checkIn = null;
+        checkOut = null;
+
+        await DoSearch();
     }
 
-    private void OnRowSelect(Room r) => _navigationManager.NavigateTo($"/rooms/{r.Id}");
+    private void OnRowSelect(Room room)
+    {
+        _navigationManager.NavigateTo($"/rooms/{room.Id}");
+    }
 }

@@ -7,17 +7,12 @@ namespace HotelWeb.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public DbSet<RoomType> RoomTypes { get; set; }
-        public DbSet<Room> Rooms { get; set; }
+        public DbSet<RoomType> RoomTypes => Set<RoomType>();
+        public DbSet<Room> Rooms => Set<Room>();
+        public DbSet<Reservation> Reservations => Set<Reservation>();
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            builder.Entity<Room>(e =>
-            {
-                e.Property(x => x.BasePrice).HasColumnType("numeric(10,2)");
-                e.HasIndex(x => x.RoomNumber).IsUnique();
-            });
 
             builder.Entity<RoomType>().HasData(
             new RoomType { Id = 1, Name = "Single", Description = "Single room", MaxCapacity = 1 },
@@ -39,6 +34,21 @@ namespace HotelWeb.Data
                 new Room { Id = 9, RoomNumber = "302", RoomTypeId = 3, Capacity = 4, BasePrice = 5900, Status = RoomStatus.Available },
                 new Room { Id = 10, RoomNumber = "303", RoomTypeId = 3, Capacity = 4, BasePrice = 6100, Status = RoomStatus.Cleaning }
             );
+
+            builder.Entity<Reservation>().HasData(
+                new Reservation
+                {
+                    Id = 1,
+                    RoomId = 4,
+                    CheckIn = new DateOnly(2026, 2, 26),
+                    CheckOut = new DateOnly(2026, 3, 1),
+                    GuestCount = 2,
+                    Status = ReservationStatus.Confirmed,
+                    TotalPrice = 0m,
+                    CreatedAt = new DateTime(2026, 2, 20, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
         }
     }
 }
+
