@@ -4,10 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace HotelWeb.Migrations
 {
     /// <inheritdoc />
-    public partial class AddRoomsAndRoomTypes : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -211,7 +213,34 @@ namespace HotelWeb.Migrations
                         column: x => x.RoomTypeId,
                         principalTable: "RoomTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "RoomTypes",
+                columns: new[] { "Id", "Description", "MaxCapacity", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Single room", 1, "Single" },
+                    { 2, "Double room", 2, "Double" },
+                    { 3, "Suite room", 4, "Suite" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Rooms",
+                columns: new[] { "Id", "BasePrice", "Capacity", "RoomNumber", "RoomTypeId", "Status" },
+                values: new object[,]
+                {
+                    { 1, 2200m, 1, "101", 1, 0 },
+                    { 2, 2300m, 1, "102", 1, 0 },
+                    { 3, 2100m, 1, "103", 1, 3 },
+                    { 4, 3200m, 2, "201", 2, 0 },
+                    { 5, 3400m, 2, "202", 2, 2 },
+                    { 6, 3600m, 2, "203", 2, 0 },
+                    { 7, 3500m, 2, "204", 2, 1 },
+                    { 8, 5200m, 4, "301", 3, 0 },
+                    { 9, 5900m, 4, "302", 3, 0 },
+                    { 10, 6100m, 4, "303", 3, 2 }
                 });
 
             migrationBuilder.CreateIndex(

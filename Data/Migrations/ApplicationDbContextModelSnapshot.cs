@@ -119,6 +119,98 @@ namespace HotelWeb.Migrations
                     b.HasIndex("RoomTypeId");
 
                     b.ToTable("Rooms");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BasePrice = 2200m,
+                            Capacity = 1,
+                            RoomNumber = "101",
+                            RoomTypeId = 1,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BasePrice = 2300m,
+                            Capacity = 1,
+                            RoomNumber = "102",
+                            RoomTypeId = 1,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BasePrice = 2100m,
+                            Capacity = 1,
+                            RoomNumber = "103",
+                            RoomTypeId = 1,
+                            Status = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BasePrice = 3200m,
+                            Capacity = 2,
+                            RoomNumber = "201",
+                            RoomTypeId = 2,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BasePrice = 3400m,
+                            Capacity = 2,
+                            RoomNumber = "202",
+                            RoomTypeId = 2,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BasePrice = 3600m,
+                            Capacity = 2,
+                            RoomNumber = "203",
+                            RoomTypeId = 2,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BasePrice = 3500m,
+                            Capacity = 2,
+                            RoomNumber = "204",
+                            RoomTypeId = 2,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 8,
+                            BasePrice = 5200m,
+                            Capacity = 4,
+                            RoomNumber = "301",
+                            RoomTypeId = 3,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 9,
+                            BasePrice = 5900m,
+                            Capacity = 4,
+                            RoomNumber = "302",
+                            RoomTypeId = 3,
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = 10,
+                            BasePrice = 6100m,
+                            Capacity = 4,
+                            RoomNumber = "303",
+                            RoomTypeId = 3,
+                            Status = 2
+                        });
                 });
 
             modelBuilder.Entity("HotelWeb.Models.RoomType", b =>
@@ -144,6 +236,29 @@ namespace HotelWeb.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RoomTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Single room",
+                            MaxCapacity = 1,
+                            Name = "Single"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Double room",
+                            MaxCapacity = 2,
+                            Name = "Double"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Suite room",
+                            MaxCapacity = 4,
+                            Name = "Suite"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -304,7 +419,7 @@ namespace HotelWeb.Migrations
                     b.HasOne("HotelWeb.Models.RoomType", "RoomType")
                         .WithMany("Rooms")
                         .HasForeignKey("RoomTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("RoomType");
