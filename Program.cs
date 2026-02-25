@@ -14,6 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<Radzen.ThemeService>();
+builder.Services.AddScoped<Radzen.DialogService>();
+builder.Services.AddScoped<Radzen.NotificationService>();
+builder.Services.AddScoped<Radzen.TooltipService>();
+builder.Services.AddScoped<Radzen.ContextMenuService>();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
