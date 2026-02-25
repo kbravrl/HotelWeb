@@ -1,27 +1,68 @@
-﻿@page "/rooms"
-@inject HotelWeb.Services.RoomService RoomService
+@page "/rooms"
+
+@inject NavigationManager _navigationManager
+@inject RoomService _roomService
 
 <h3>Rooms</h3>
 
-@if (rooms is null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <ul>
-        @foreach (var r in rooms)
-        {
-            <li>@r.RoomNumber - @r.RoomType?.Name - @r.BasePrice - @r.Status</li>
-        }
-    </ul>
-}
+<RadzenCard Style="margin-bottom:12px;">
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <RadzenTextBox Placeholder="Search room no..." Style="width:240px" @bind-Value="search" />
+        <RadzenDropDown Data="@statuses" Placeholder="Status" Style="width:180px"
+                        AllowClear="true" @bind-Value="selectedStatus" />
+        <RadzenButton Text="Clear" ButtonStyle="ButtonStyle.Light" Click="@ClearFilters" />
+    </div>
+</RadzenCard>
+
+<RadzenDataGrid Data="@filteredRooms" TItem="Room" AllowPaging="true" PageSize="8"
+                AllowSorting="true" RowSelect="@OnRowSelect">
+    <Columns>
+        <RadzenDataGridColumn TItem="Room" Property="RoomNumber" Title="Room No" />
+        <RadzenDataGridColumn TItem="Room" Title="Type">
+            <Template Context="r">@r.RoomType?.Name</Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Room" Property="Capacity" Title="Capacity" />
+        <RadzenDataGridColumn TItem="Room" Property="BasePrice" Title="Price/Night">
+            <Template Context="r">@($"{r.BasePrice:n0} ₺")</Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Room" Property="Status" Title="Status">
+            <Template Context="r">
+                <RadzenBadge Text="@r.Status.ToString()" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Room" Title="">
+            <Template Context="r">
+                <RadzenButton Text="Detail" Size="ButtonSize.Small"
+                              Click="@(() => _navigationManager.NavigateTo($"/rooms/{r.Id}"))" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
 
 @code {
-    private List<HotelWeb.Models.Room>? rooms;
+    private List<Room> rooms = new();
+    private string? search;
+    private string? selectedStatus;
+
+    private readonly List<string> statuses = ["Available", "Occupied", "Cleaning", "Maintenance"];
 
     protected override async Task OnInitializedAsync()
     {
-        rooms = await RoomService.GetRoomsAsync();
+        rooms = await _roomService.GetRoomsAsync();
     }
+
+    private IEnumerable<Room> filteredRooms => rooms.Where(r =>
+    {
+        var okSearch = string.IsNullOrWhiteSpace(search) || r.RoomNumber.Contains(search.Trim());
+        var okStatus = string.IsNullOrWhiteSpace(selectedStatus) || r.Status.ToString() == selectedStatus;
+        return okSearch && okStatus;
+    });
+
+    private void ClearFilters()
+    {
+        search = null;
+        selectedStatus = null;
+    }
+
+    private void OnRowSelect(Room r) => _navigationManager.NavigateTo($"/rooms/{r.Id}");
 }

@@ -1,0 +1,42 @@
+﻿@page "/rooms/{Id:int}"
+
+@inject RoomService _roomService
+@inject NavigationManager _navigationManager
+
+<RadzenButton Text="Back" Icon="arrow_back" ButtonStyle="ButtonStyle.Light"
+              Click="@(()=>_navigationManager.NavigateTo("/rooms"))" Style="margin-bottom:12px;" />
+
+@if (room is null)
+{
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+}
+else
+{
+    <RadzenCard>
+        <h3 style="margin-top:0;">Room @room.RoomNumber</h3>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div><b>Type:</b> @room.RoomType?.Name</div>
+            <div><b>Status:</b> <RadzenBadge Text="@room.Status.ToString()" /></div>
+            <div><b>Capacity:</b> @room.Capacity</div>
+            <div><b>Price:</b> @($"{room.BasePrice:n0} ₺ / night")</div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(room.RoomType?.Description))
+        {
+            <p style="margin-top:12px;">@room.RoomType!.Description</p>
+        }
+
+        <RadzenButton Text="Start Reservation (soon)" Disabled="true" Style="margin-top:12px;" />
+    </RadzenCard>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Room? room;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        room = await _roomService.GetRoomAsync(Id);
+    }
+}
