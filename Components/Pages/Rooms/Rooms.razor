@@ -1,0 +1,27 @@
+﻿@page "/rooms"
+@inject HotelWeb.Services.RoomService RoomService
+
+<h3>Rooms</h3>
+
+@if (rooms is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var r in rooms)
+        {
+            <li>@r.RoomNumber - @r.RoomType?.Name - @r.BasePrice - @r.Status</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<HotelWeb.Models.Room>? rooms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = await RoomService.GetRoomsAsync();
+    }
+}
