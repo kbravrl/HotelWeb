@@ -11,7 +11,27 @@ public class ReservationService(
 {
     public Task<List<Reservation>> GetAllAsync()
         => reservationRepo.GetAllAsync();
+    public Task<Reservation?> GetByIdAsync(int id)
+        => reservationRepo.GetByIdAsync(id);
+    public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut)
+    {
+        if (checkOut <= checkIn)
+            throw new InvalidOperationException("Check-out must be after check-in.");
 
+        var hasOverlap = await reservationRepo.HasOverlapAsync(roomId, checkIn, checkOut);
+        if (hasOverlap)
+            throw new InvalidOperationException("This room is not available for selected dates.");
+
+        await reservationRepo.AddAsync(new Reservation
+        {
+            RoomId = roomId,
+            CheckIn = checkIn,
+            CheckOut = checkOut,
+            Status = ReservationStatus.Pending
+        });
+
+        await reservationRepo.SaveChangesAsync();
+    }
     public async Task CheckInAsync(int reservationId)
     {
         var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
