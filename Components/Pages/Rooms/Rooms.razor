@@ -12,28 +12,7 @@
         <div>
             <RadzenLabel Text="Room No" />
             <RadzenTextBox Style="width:160px"
-                           @bind-Value="roomNo" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Check-in" />
-            <RadzenDatePicker Style="width:160px"
-                              @bind-Value="checkIn"
-                              DateFormat="dd/MM/yyyy" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Check-out" />
-            <RadzenDatePicker Style="width:160px"
-                              @bind-Value="checkOut"
-                              DateFormat="dd/MM/yyyy" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Guests" />
-            <RadzenNumeric Style="width:120px"
-                           @bind-Value="guestCount"
-                           Min="1" Max="10" />
+                           @bind-Value="roomNo"/>
         </div>
 
         <div>
@@ -44,6 +23,28 @@
                             Style="width:180px"
                             AllowClear="true"
                             @bind-Value="selectedRoomTypeId" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Capacity" />
+            <RadzenNumeric Style="width:160px"
+                           @bind-Value="capacity"/>
+        </div>
+
+        <div>
+            <RadzenLabel Text="Min Price" />
+            <RadzenNumeric Style="width:160px"
+                           @bind-Value="minPrice"
+                           Min="0"
+                           Step="10" />
+        </div>
+
+        <div>
+            <RadzenLabel Text="Max Price" />
+            <RadzenNumeric Style="width:160px"
+                           @bind-Value="maxPrice"
+                           Min="0"
+                           Step="10" />
         </div>
 
         <AuthorizeView Roles="@AppRoles.Employee">
@@ -135,13 +136,12 @@
     private List<RoomType> roomTypes = new();
 
     private string? roomNo;
+    private int? capacity;
+    private decimal? minPrice;
+    private decimal? maxPrice;
+
     private int? selectedRoomTypeId;
     private RoomStatus? selectedStatus;
-
-    private int guestCount = 1;
-
-    private DateTime? checkIn;
-    private DateTime? checkOut;
 
     private readonly List<RoomStatus> statuses =
         Enum.GetValues<RoomStatus>().ToList();
@@ -169,9 +169,6 @@
     {
         await LoadUserFlagsAsync();
 
-        if (checkIn.HasValue && checkOut.HasValue && checkOut.Value.Date <= checkIn.Value.Date)
-            return;
-
         RoomStatus? effectiveStatus =
             (!_isAuthenticated || _isCustomer)
                 ? RoomStatus.Available
@@ -179,12 +176,12 @@
 
         var filter = new RoomSearchFilter
         {
-            RoomNumberQuery = roomNo,
+            RoomNo = roomNo,
             RoomTypeId = selectedRoomTypeId,
-            Status = effectiveStatus,
-            GuestCount = guestCount,
-            CheckIn = checkIn.HasValue ? DateOnly.FromDateTime(checkIn.Value) : null,
-            CheckOut = checkOut.HasValue ? DateOnly.FromDateTime(checkOut.Value) : null
+            Capacity = capacity,
+            MinPrice = minPrice,
+            MaxPrice = maxPrice,
+            Status = effectiveStatus
         };
 
         rooms = await _roomService.SearchRoomsAsync(filter);
@@ -195,9 +192,9 @@
         roomNo = null;
         selectedRoomTypeId = null;
         selectedStatus = null;
-        guestCount = 0;
-        checkIn = null;
-        checkOut = null;
+        capacity = null;
+        minPrice = null;
+        maxPrice = null;
 
         await DoSearch();
     }

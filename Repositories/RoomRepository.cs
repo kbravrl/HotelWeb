@@ -28,8 +28,8 @@ public class RoomRepository(ApplicationDbContext db) : IRoomRepository
     {
         var q = db.Rooms.AsNoTracking().Include(r => r.RoomType).AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(filter.RoomNumberQuery))
-            q = q.Where(r => r.RoomNumber.Contains(filter.RoomNumberQuery.Trim()));
+        if (!string.IsNullOrWhiteSpace(filter.RoomNo))
+            q = q.Where(r => r.RoomNumber.Contains(filter.RoomNo));
 
         if (filter.RoomTypeId.HasValue)
             q = q.Where(r => r.RoomTypeId == filter.RoomTypeId.Value);
@@ -37,27 +37,14 @@ public class RoomRepository(ApplicationDbContext db) : IRoomRepository
         if (filter.Status.HasValue)
             q = q.Where(r => r.Status == filter.Status.Value);
 
-        if (filter.GuestCount.HasValue)
-            q = q.Where(r => r.Capacity >= filter.GuestCount.Value);
+        if (filter.Capacity.HasValue)
+            q = q.Where(r => r.Capacity >= filter.Capacity.Value);
 
-        if (filter.CheckIn.HasValue && filter.CheckOut.HasValue)
-        {
-            var checkIn = filter.CheckIn.Value;
-            var checkOut = filter.CheckOut.Value;
+        if (filter.MinPrice.HasValue)
+            q = q.Where(r => r.BasePrice >= filter.MinPrice.Value);
 
-            if (checkOut <= checkIn)
-                return new List<Room>();
-
-            q = q.Where(room =>
-                !db.Reservations.Any(res =>
-                    res.RoomId == room.Id &&
-                    res.Status != HotelWeb.Enums.ReservationStatus.Cancelled &&
-                    checkIn < res.CheckOut &&
-                    checkOut > res.CheckIn
-                )
-            );
-        }
-
+        if (filter.MaxPrice.HasValue)
+            q = q.Where(r => r.BasePrice <= filter.MaxPrice.Value);
 
         return await q.OrderBy(r => r.RoomNumber).ToListAsync();
     }

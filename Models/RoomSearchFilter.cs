@@ -4,10 +4,10 @@ namespace HotelWeb.Models;
 
 public class RoomSearchFilter
 {
-    public DateOnly? CheckIn { get; set; }
-    public DateOnly? CheckOut { get; set; }
-    public int? GuestCount { get; set; }
+    public string? RoomNo { get; set; }
     public int? RoomTypeId { get; set; }
+    public int? Capacity { get; set; }
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
     public RoomStatus? Status { get; set; }
-    public string? RoomNumberQuery { get; set; }
 }
