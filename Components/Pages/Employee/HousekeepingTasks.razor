@@ -1,16 +1,13 @@
-﻿@page "/employee/housekeeping"
+@page "/employee/housekeeping"
 
-@using HousekeepingTaskModel = HotelWeb.Models.HousekeepingTask
-
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
-
+@attribute [Authorize(Roles =AppRoles.Employee)]
 @inject IHousekeepingTaskService _housekeepingTaskService
 @inject NotificationService _notificationService
 
 <RadzenStack Gap="12px">
     <RadzenText TextStyle="TextStyle.H4">Employee • Housekeeping</RadzenText>
 
-    <RadzenDataGrid TItem="HousekeepingTaskModel"
+    <RadzenDataGrid TItem="HousekeepingTask"
                     Data="@_tasks"
                     AllowPaging="true"
                     PageSize="10"
@@ -21,32 +18,32 @@
                     ColumnWidth="180px"
                     EmptyText="No open housekeeping tasks.">
         <Columns>
-            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Property="Id" Title="Task" Width="90px" />
+            <RadzenDataGridColumn TItem="HousekeepingTask" Property="Id" Title="Task" Width="90px" />
 
-            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Room" Width="120px">
+            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Room" Width="120px">
                 <Template>
                     @{
-                        var t = context as HousekeepingTaskModel;
+                        var t = context as HousekeepingTask;
                         @t.RoomId
                     }
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Status" Width="160px">
+            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Status" Width="160px">
                 <Template>
                     @{
-                        var t = context as HousekeepingTaskModel;
+                        var t = context as HousekeepingTask;
                         <RadzenBadge Text="@t.Status.ToString()" />
                     }
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Property="CreatedAt" Title="Created" />
+            <RadzenDataGridColumn TItem="HousekeepingTask" Property="CreatedAt" Title="Created" />
 
-            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Actions" Width="220px" Sortable="false" Filterable="false">
+            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Actions" Width="220px" Sortable="false" Filterable="false">
                 <Template>
                     @{
-                        var t = context as HousekeepingTaskModel;
+                        var t = context as HousekeepingTask;
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
                             @if (t.Status == HousekeepingTaskStatus.Pending)
                             {
@@ -75,7 +72,7 @@
 </RadzenStack>
 
 @code {
-    private List<HousekeepingTaskModel> _tasks = new();
+    private List<HousekeepingTask> _tasks = new();
 
     protected override async Task OnInitializedAsync()
     {

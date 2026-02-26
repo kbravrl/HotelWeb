@@ -1,7 +1,6 @@
 ﻿@page "/employee/reservations"
 
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
-
+@attribute [Authorize(Roles = AppRoles.Employee)]
 @inject IReservationService _reservationService
 @inject NotificationService _notificationService
 
