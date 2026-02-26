@@ -1,8 +1,10 @@
-﻿@page "/employee/reservations"
+﻿@page "/reservations"
 
-@attribute [Authorize(Roles = AppRoles.Employee)]
+@attribute [Authorize]
+
 @inject IReservationService _reservationService
 @inject NotificationService _notificationService
+@inject NavigationManager _navigationManager
 
 <RadzenStack Gap="12px">
     <RadzenText TextStyle="TextStyle.H4">Employee • Reservations</RadzenText>
@@ -66,6 +68,10 @@
                         {
                             <RadzenText TextStyle="TextStyle.Caption">Read-only</RadzenText>
                         }
+                        <RadzenButton Text="Details"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}"))" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>

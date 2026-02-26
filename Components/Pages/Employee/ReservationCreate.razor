@@ -1,0 +1,113 @@
+﻿@page "/reservations/create"
+
+@attribute [Authorize(Roles = AppRoles.Customer)]
+
+@inject IRoomService _roomService
+@inject IReservationService _reservationService
+@inject NavigationManager _navigationManager
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="12px">
+    <RadzenButton Text="Back"
+                  Icon="arrow_back"
+                  ButtonStyle="ButtonStyle.Light"
+                  Click="@(()=> _navigationManager.NavigateTo("/rooms"))" />
+
+    <RadzenText TextStyle="TextStyle.H4">Create Reservation</RadzenText>
+
+    @if (_room is null)
+    {
+        <RadzenAlert Severity="AlertSeverity.Warning">
+            Room not found (roomId missing or invalid).
+        </RadzenAlert>
+    }
+    else
+    {
+        <RoomSummaryCard Room="_room" />
+
+        <RadzenCard Style="margin-top:12px;">
+            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
+
+                <div>
+                    <RadzenLabel Text="Check-in" />
+                    <RadzenDatePicker Style="width:170px"
+                                      @bind-Value="_checkIn"
+                                      DateFormat="dd/MM/yyyy" />
+                </div>
+
+                <div>
+                    <RadzenLabel Text="Check-out" />
+                    <RadzenDatePicker Style="width:170px"
+                                      @bind-Value="_checkOut"
+                                      DateFormat="dd/MM/yyyy" />
+                </div>
+
+                <div>
+                    <RadzenButton Text="Create"
+                                  Icon="save"
+                                  Disabled="@_saving"
+                                  Click="@CreateReservation" />
+                </div>
+            </div>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+@code {
+    [SupplyParameterFromQuery] public int? roomId { get; set; }
+
+    private Room? _room;
+
+    private DateTime? _checkIn = DateTime.Today.AddDays(1);
+    private DateTime? _checkOut = DateTime.Today.AddDays(2);
+
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (roomId is null)
+            return;
+
+        _room = await _roomService.GetRoomAsync(roomId.Value);
+    }
+
+    private async Task CreateReservation()
+    {
+        if (_room is null)
+            return;
+
+        if (!_checkIn.HasValue || !_checkOut.HasValue)
+        {
+            _notificationService.Notify(NotificationSeverity.Warning, "Missing", "Please select dates.");
+            return;
+        }
+
+        if (_checkOut.Value.Date <= _checkIn.Value.Date)
+        {
+            _notificationService.Notify(NotificationSeverity.Warning, "Invalid", "Check-out must be after check-in.");
+            return;
+        }
+
+        _saving = true;
+
+        try
+        {
+            await _reservationService.CreateAsync(
+                roomId: _room.Id,
+                checkIn: DateOnly.FromDateTime(_checkIn.Value),
+                checkOut: DateOnly.FromDateTime(_checkOut.Value)
+            );
+
+            _notificationService.Notify(NotificationSeverity.Success, "Success", "Reservation created (Pending).");
+            _navigationManager.NavigateTo("/reservations");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
