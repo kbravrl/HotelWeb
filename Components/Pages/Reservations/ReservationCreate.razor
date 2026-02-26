@@ -7,51 +7,95 @@
 @inject NavigationManager _navigationManager
 @inject NotificationService _notificationService
 
-<RadzenStack Gap="12px">
-    <RadzenButton Text="Back"
-                  Icon="arrow_back"
-                  ButtonStyle="ButtonStyle.Light"
-                  Click="@(()=> _navigationManager.NavigateTo("/rooms"))" />
+<RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 520px;">
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="rz-p-4">
+        <RadzenStack Gap="0">
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-my-0">Reservation</RadzenText>
+            <RadzenText TextStyle="TextStyle.H5" class="rz-my-0"><b>Create Reservation</b></RadzenText>
+        </RadzenStack>
 
-    <RadzenText TextStyle="TextStyle.H4">Create Reservation</RadzenText>
+        <RadzenButton Variant="Variant.Text"
+                      class="rz-text-secondary-color"
+                      Text="Back"
+                      Icon="arrow_back"
+                      Click="@(()=> _navigationManager.NavigateTo("/rooms"))" />
+    </RadzenStack>
 
-    @if (_room is null)
+    @if (_loading)
     {
-        <RadzenAlert Severity="AlertSeverity.Warning">
-            Room not found (roomId missing or invalid).
-        </RadzenAlert>
+        <div class="rz-p-4">
+            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    }
+    else if (_room is null)
+    {
+        <div class="rz-p-4">
+            <RadzenAlert Severity="AlertSeverity.Warning">
+                Room not found (roomId missing or invalid).
+            </RadzenAlert>
+        </div>
     }
     else
     {
-        <RoomSummaryCard Room="_room" />
+        <div class="rz-p-4">
+            <RoomSummaryCard Room="_room" />
+        </div>
 
-        <RadzenCard Style="margin-top:12px;">
-            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
+        <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8"
+                    style="margin: 0 calc(-1 * var(--rz-card-padding));">
+            <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light">
+                <strong>Reservation Details</strong>
+            </RadzenText>
 
-                <div>
-                    <RadzenLabel Text="Check-in" />
-                    <RadzenDatePicker Style="width:170px"
+            <RadzenRow RowGap="0" class="rz-mt-2">
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Check-in
+                    </RadzenText>
+
+                    <RadzenDatePicker Style="width: 100%;"
                                       @bind-Value="_checkIn"
                                       DateFormat="dd/MM/yyyy" />
-                </div>
+                </RadzenColumn>
 
-                <div>
-                    <RadzenLabel Text="Check-out" />
-                    <RadzenDatePicker Style="width:170px"
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Check-out
+                    </RadzenText>
+
+                    <RadzenDatePicker Style="width: 100%;"
                                       @bind-Value="_checkOut"
                                       DateFormat="dd/MM/yyyy" />
-                </div>
+                </RadzenColumn>
+            </RadzenRow>
 
-                <div>
-                    <RadzenButton Text="Create"
-                                  Icon="save"
-                                  Disabled="@_saving"
-                                  Click="@CreateReservation" />
-                </div>
-            </div>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-color-on-primary-light rz-mt-4">
+                Your reservation will be created as <b>Pending</b>.
+            </RadzenText>
         </RadzenCard>
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.End"
+                     Gap="0"
+                     class="rz-p-4">
+            <RadzenButton Variant="Variant.Text"
+                          class="rz-text-secondary-color"
+                          Text="Cancel"
+                          Disabled="@_saving"
+                          Click="@(()=> _navigationManager.NavigateTo("/rooms"))" />
+
+            <RadzenButton Variant="Variant.Text"
+                          Text="@(_saving ? "Creating..." : "Create")"
+                          Disabled="@_saving"
+                          Click="@CreateReservation" />
+        </RadzenStack>
     }
-</RadzenStack>
+</RadzenCard>
 
 @code {
     [SupplyParameterFromQuery] public int? roomId { get; set; }
@@ -62,13 +106,21 @@
     private DateTime? _checkOut = DateTime.Today.AddDays(2);
 
     private bool _saving;
+    private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        if (roomId is null)
-            return;
+        try
+        {
+            if (roomId is null)
+                return;
 
-        _room = await _roomService.GetRoomAsync(roomId.Value);
+            _room = await _roomService.GetRoomAsync(roomId.Value);
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private async Task CreateReservation()

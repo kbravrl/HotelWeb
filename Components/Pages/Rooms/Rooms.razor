@@ -4,14 +4,12 @@
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
 
-<h3>Rooms</h3>
-
 <RadzenCard Style="margin-bottom:16px;">
     <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
 
         <div>
             <RadzenLabel Text="Room No" />
-            <RadzenTextBox Style="width:160px"
+            <RadzenTextBox Style="width:80px"
                            @bind-Value="roomNo"/>
         </div>
 
@@ -20,7 +18,7 @@
             <RadzenDropDown Data="@roomTypes"
                             TextProperty="Name"
                             ValueProperty="Id"
-                            Style="width:180px"
+                            Style="width:160px"
                             AllowClear="true"
                             @bind-Value="selectedRoomTypeId" />
         </div>
@@ -57,11 +55,13 @@
             </div>
         </AuthorizeView>
 
-        <RadzenButton Text="Search"
+        <RadzenButton Variant="Variant.Flat" 
+                      Text="Search"
                       Icon="search"
                       Click="@DoSearch" />
 
-        <RadzenButton Text="Clear"
+        <RadzenButton Variant="Variant.Flat"  
+                      Text="Clear"
                       ButtonStyle="ButtonStyle.Light"
                       Click="@Clear" />
 
@@ -111,14 +111,16 @@
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
                     @if (_isAuthenticated == false)
                     {
-                        <RadzenButton Text="Reserve"
+                        <RadzenButton Variant="Variant.Flat" 
+                                      Text="Reserve"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Primary"
                                       Click="@(() => RedirectToLoginForReservation(r.Id))" />
                     }
                     else if (_isCustomer)
                     {
-                        <RadzenButton Text="Reserve"
+                        <RadzenButton Variant="Variant.Flat" 
+                                      Text="Reserve"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Primary"
                                       Click="@(() => GoReservationCreate(r.Id))" />

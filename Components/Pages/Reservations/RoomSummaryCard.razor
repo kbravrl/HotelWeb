@@ -13,11 +13,6 @@ else
             <div><b>Capacity:</b> @Room.Capacity</div>
             <div><b>Price:</b> @($"{Room.BasePrice:n0} ₺ / night")</div>
         </div>
-
-        @if (!string.IsNullOrWhiteSpace(Room.RoomType?.Description))
-        {
-            <p style="margin-top:12px;">@Room.RoomType!.Description</p>
-        }
     </RadzenCard>
 }
 
