@@ -1,5 +1,6 @@
 @page "/rooms"
 
+@inject AuthenticationStateProvider _authStateProvider
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
 
@@ -45,13 +46,15 @@
                             @bind-Value="selectedRoomTypeId" />
         </div>
 
-        <div>
-            <RadzenLabel Text="Status" />
-            <RadzenDropDown Data="@statuses"
-                            Style="width:160px"
-                            AllowClear="true"
-                            @bind-Value="selectedStatus" />
-        </div>
+        <AuthorizeView Roles="@AppRoles.Employee">
+            <div>
+                <RadzenLabel Text="Status" />
+                <RadzenDropDown Data="@statuses"
+                                Style="width:160px"
+                                AllowClear="true"
+                                @bind-Value="selectedStatus" />
+            </div>
+        </AuthorizeView>
 
         <RadzenButton Text="Search"
                       Icon="search"
@@ -67,9 +70,7 @@
 <RadzenDataGrid Data="@rooms"
                 TItem="Room"
                 AllowPaging="true"
-                PageSize="8"
-                AllowSorting="true"
-                RowSelect="@OnRowSelect">
+                PageSize="8">
 
     <Columns>
 
@@ -104,12 +105,24 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="Room"
-                              Title="">
+        <RadzenDataGridColumn TItem="Room" Title="" Width="260px">
             <Template Context="r">
-                <RadzenButton Text="Detail"
-                              Size="ButtonSize.Small"
-                              Click="@(() => _navigationManager.NavigateTo($"/rooms/{r.Id}"))" />
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
+                    @if (_isAuthenticated == false)
+                    {
+                        <RadzenButton Text="Reserve"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(() => RedirectToLoginForReservation(r.Id))" />
+                    }
+                    else if (_isCustomer)
+                    {
+                        <RadzenButton Text="Reserve"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(() => GoReservationCreate(r.Id))" />
+                    }
+                </RadzenStack>
             </Template>
         </RadzenDataGridColumn>
 
@@ -133,24 +146,42 @@
     private readonly List<RoomStatus> statuses =
         Enum.GetValues<RoomStatus>().ToList();
 
+    private bool _isAuthenticated;
+    private bool _isCustomer;
+
     protected override async Task OnInitializedAsync()
     {
+        await LoadUserFlagsAsync();
         roomTypes = await _roomService.GetRoomTypesAsync();
         await DoSearch();
     }
 
+    private async Task LoadUserFlagsAsync()
+    {
+        var state = await _authStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
+        _isAuthenticated = user.Identity?.IsAuthenticated == true;
+        _isCustomer = user.IsInRole(AppRoles.Customer);
+    }
+
     private async Task DoSearch()
     {
+        await LoadUserFlagsAsync();
+
         if (checkIn.HasValue && checkOut.HasValue && checkOut.Value.Date <= checkIn.Value.Date)
-        {
             return;
-        }
+
+        RoomStatus? effectiveStatus =
+            (!_isAuthenticated || _isCustomer)
+                ? RoomStatus.Available
+                : selectedStatus;
 
         var filter = new RoomSearchFilter
         {
             RoomNumberQuery = roomNo,
             RoomTypeId = selectedRoomTypeId,
-            Status = selectedStatus,
+            Status = effectiveStatus,
             GuestCount = guestCount,
             CheckIn = checkIn.HasValue ? DateOnly.FromDateTime(checkIn.Value) : null,
             CheckOut = checkOut.HasValue ? DateOnly.FromDateTime(checkOut.Value) : null
@@ -164,7 +195,7 @@
         roomNo = null;
         selectedRoomTypeId = null;
         selectedStatus = null;
-        guestCount = 1;
+        guestCount = 0;
         checkIn = null;
         checkOut = null;
 
@@ -174,5 +205,17 @@
     private void OnRowSelect(Room room)
     {
         _navigationManager.NavigateTo($"/rooms/{room.Id}");
+    }
+
+    private void GoReservationCreate(int roomId)
+    {
+        _navigationManager.NavigateTo($"/reservations/create?roomId={roomId}");
+    }
+
+    private void RedirectToLoginForReservation(int roomId)
+    {
+        var returnUrl = $"/reservations/create?roomId={roomId}";
+        var url = QueryHelpers.AddQueryString("/Account/Login", "returnUrl", returnUrl);
+        _navigationManager.NavigateTo(url, forceLoad: true);
     }
 }
