@@ -1,0 +1,119 @@
+﻿@page "/employee/reservations"
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@inject IReservationService _reservationService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="12px">
+    <RadzenText TextStyle="TextStyle.H4">Employee • Reservations</RadzenText>
+
+    <RadzenDataGrid TItem="Reservation"
+                    Data="@_items"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.Simple"
+                    Responsive="true"
+                    ColumnWidth="180px"
+                    EmptyText="No reservations found.">
+        <Columns>
+            <RadzenDataGridColumn TItem="Reservation" Property="Id" Title="Id" Width="90px" />
+
+            <RadzenDataGridColumn TItem="Reservation" Title="Room" Width="120px">
+                <Template Context="r">
+                    @r.RoomId
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Reservation" Property="CheckIn" Title="Check-In" />
+            <RadzenDataGridColumn TItem="Reservation" Property="CheckOut" Title="Check-Out" />
+
+            <RadzenDataGridColumn TItem="Reservation" Title="Status" Width="140px">
+                <Template Context="r">
+                    <RadzenBadge Text="@r.Status.ToString()" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Reservation" Title="Actions" Width="280px" Sortable="false" Filterable="false">
+                <Template Context="r">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
+                        @if (r.Status == ReservationStatus.Confirmed)
+                        {
+                            <RadzenButton Text="Check-in"
+                                          ButtonStyle="ButtonStyle.Success"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => CheckIn(r.Id))" />
+
+                            <RadzenButton Text="NoShow"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Size="ButtonSize.Small"
+                                          Disabled="true" />
+
+                            <RadzenButton Text="Cancel"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Size="ButtonSize.Small"
+                                          Disabled="true" />
+                        }
+                        else if (r.Status == ReservationStatus.CheckedIn)
+                        {
+                            <RadzenButton Text="Check-out"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => CheckOut(r.Id))" />
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Caption">Read-only</RadzenText>
+                        }
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
+
+@code {
+    private List<Reservation> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _items = await _reservationService.GetAllAsync();
+    }
+
+    private async Task CheckIn(int id)
+    {
+        try
+        {
+            await _reservationService.CheckInAsync(id);
+            await LoadAsync();
+
+            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Reservation #{id} checked-in.");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+    }
+
+    private async Task CheckOut(int id)
+    {
+        try
+        {
+            await _reservationService.CheckOutAsync(id);
+            await LoadAsync();
+
+            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Reservation #{id} checked-out. Housekeeping task created.");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+    }
+}

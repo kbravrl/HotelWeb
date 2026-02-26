@@ -1,0 +1,119 @@
+﻿@page "/employee/housekeeping"
+
+@using HousekeepingTaskModel = HotelWeb.Models.HousekeepingTask
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@inject IHousekeepingTaskService _housekeepingTaskService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="12px">
+    <RadzenText TextStyle="TextStyle.H4">Employee • Housekeeping</RadzenText>
+
+    <RadzenDataGrid TItem="HousekeepingTaskModel"
+                    Data="@_tasks"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.Simple"
+                    Responsive="true"
+                    ColumnWidth="180px"
+                    EmptyText="No open housekeeping tasks.">
+        <Columns>
+            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Property="Id" Title="Task" Width="90px" />
+
+            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Room" Width="120px">
+                <Template>
+                    @{
+                        var t = context as HousekeepingTaskModel;
+                        @t.RoomId
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Status" Width="160px">
+                <Template>
+                    @{
+                        var t = context as HousekeepingTaskModel;
+                        <RadzenBadge Text="@t.Status.ToString()" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Property="CreatedAt" Title="Created" />
+
+            <RadzenDataGridColumn TItem="HousekeepingTaskModel" Title="Actions" Width="220px" Sortable="false" Filterable="false">
+                <Template>
+                    @{
+                        var t = context as HousekeepingTaskModel;
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
+                            @if (t.Status == HousekeepingTaskStatus.Pending)
+                            {
+                                <RadzenButton Text="Start"
+                                              ButtonStyle="ButtonStyle.Primary"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Start(t.Id))" />
+                            }
+                            else if (t.Status == HousekeepingTaskStatus.InProgress)
+                            {
+                                <RadzenButton Text="Done"
+                                              ButtonStyle="ButtonStyle.Success"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Done(t.Id))" />
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Caption">Completed</RadzenText>
+                            }
+                        </RadzenStack>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
+
+@code {
+    private List<HousekeepingTaskModel> _tasks = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _tasks = await _housekeepingTaskService.GetOpenTasksAsync();
+    }
+
+    private async Task Start(int id)
+    {
+        try
+        {
+            await _housekeepingTaskService.StartAsync(id);
+            await LoadAsync();
+
+            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Task #{id} started.");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+    }
+
+    private async Task Done(int id)
+    {
+        try
+        {
+            await _housekeepingTaskService.CompleteAsync(id);
+            await LoadAsync();
+
+            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Task #{id} completed. Room set to Available.");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+    }
+}
