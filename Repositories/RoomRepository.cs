@@ -1,9 +1,8 @@
 ﻿using HotelWeb.Data;
 using HotelWeb.Models;
-using HotelWeb.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotelWeb.Repository;
+namespace HotelWeb.Repositories;
 
 public class RoomRepository(ApplicationDbContext db) : IRoomRepository
 {
@@ -22,6 +21,8 @@ public class RoomRepository(ApplicationDbContext db) : IRoomRepository
 
     public async Task<List<RoomType>> GetRoomTypesAsync()
         => await db.RoomTypes.AsNoTracking().OrderBy(x => x.Name).ToListAsync();
+
+    public Task SaveChangesAsync() => db.SaveChangesAsync();
 
     public async Task<List<Room>> SearchAsync(RoomSearchFilter filter)
     {

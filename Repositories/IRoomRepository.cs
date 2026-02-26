@@ -1,6 +1,6 @@
 ﻿using HotelWeb.Models;
 
-namespace HotelWeb.Repository.IRepository;
+namespace HotelWeb.Repositories;
 
 public interface IRoomRepository
 {
@@ -8,4 +8,5 @@ public interface IRoomRepository
     Task<Room?> GetByIdAsync(int id);
     Task<List<Room>> SearchAsync(RoomSearchFilter filter);
     Task<List<RoomType>> GetRoomTypesAsync();
+    Task SaveChangesAsync();
 }
