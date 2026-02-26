@@ -1,6 +1,7 @@
-@page "/employee/housekeeping"
+@page "/housekeeping"
 
 @attribute [Authorize(Roles =AppRoles.Employee)]
+
 @inject IHousekeepingTaskService _housekeepingTaskService
 @inject NotificationService _notificationService
 
