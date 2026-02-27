@@ -2,44 +2,68 @@
 
 @attribute [Authorize]
 
+@using System.Security.Claims
+@inject AuthenticationStateProvider _authStateProvider
 @inject IReservationService _reservationService
 @inject NavigationManager _navigationManager
 
-<RadzenStack Gap="12px">
-    <RadzenButton Text="Back"
-                  Icon="arrow_back"
-                  ButtonStyle="ButtonStyle.Light"
-                  Click="@(()=> _navigationManager.NavigateTo("/reservations"))" />
+@if (Reservation is null)
+{
+    <RadzenAlert Severity="AlertSeverity.Warning">Reservation not found.</RadzenAlert>
+}
+else
+{
+    <RadzenStack Gap="12px">
+        <RadzenButton Text="Back"
+                      Icon="arrow_back"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@(()=> _navigationManager.NavigateTo("/reservations"))" />
 
-    @if (_reservation is null)
-    {
-        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-    }
-    else
-    {
-        <RadzenCard>
-            <RadzenText TextStyle="TextStyle.H4">Reservation #@_reservation.Id</RadzenText>
+        @if (Reservation is null)
+        {
+            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+        }
+        else
+        {
+            <RadzenCard>
+                <RadzenText TextStyle="TextStyle.H4">Reservation #@Reservation.Id</RadzenText>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
-                <div><b>Status:</b> <RadzenBadge Text="@_reservation.Status.ToString()" BadgeStyle="@BadgeStyles.ForReservationStatus(_reservation.Status)" /></div>
-                <div><b>Room Number:</b> @_reservation.Room.RoomNumber</div>
-                <div><b>Check-In:</b> @_reservation.CheckIn</div>
-                <div><b>Check-Out:</b> @_reservation.CheckOut</div>
-            </div>
-        </RadzenCard>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
+                    <div><b>Status:</b> <RadzenBadge Text="@Reservation.Status.ToString()" BadgeStyle="@BadgeStyles.ForReservationStatus(Reservation.Status)" /></div>
+                    <div><b>Room Number:</b> @Reservation.Room.RoomNumber</div>
+                    <div><b>Check-In:</b> @Reservation.CheckIn</div>
+                    <div><b>Check-Out:</b> @Reservation.CheckOut</div>
+                </div>
+            </RadzenCard>
 
-        <RoomSummaryCard Room="@_reservation.Room" />
-    }
-</RadzenStack>
+            <RoomSummaryCard Room="@Reservation.Room" />
+        }
+    </RadzenStack>
+}
 
 @code {
     [Parameter] public int Id { get; set; }
 
-    private Reservation? _reservation;
+    private Reservation? Reservation;
 
     protected override async Task OnParametersSetAsync()
     {
-        _reservation = await _reservationService.GetByIdAsync(Id);
-         
+        Reservation = await _reservationService.GetByIdAsync(Id);
+
+        if (Reservation is null)
+            return;
+
+        var state = await _authStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
+        var IsEmployee = user.IsInRole(AppRoles.Employee);
+        var UserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!IsEmployee && !string.IsNullOrWhiteSpace(UserId) && Reservation.CustomerId != UserId)
+        {
+            _navigationManager.NavigateTo("/reservations");
+            Reservation = null;
+            return;
+        }
     }
 }
