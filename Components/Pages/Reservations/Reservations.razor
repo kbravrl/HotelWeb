@@ -41,33 +41,67 @@
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="Reservation" Title="Actions" Width="260px" Sortable="false" Filterable="false">
+            <RadzenDataGridColumn TItem="Reservation" Title="Actions" Width="320px" Sortable="false" Filterable="false">
                 <Template Context="r">
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
-                        @if (r.Status == ReservationStatus.Confirmed)
-                        {
-                            <RadzenButton Text="Check-in"
-                                          ButtonStyle="ButtonStyle.Success"
-                                          Size="ButtonSize.Small"
-                                          Click="@(() => CheckIn(r.Id))" />
 
-                            <RadzenButton Text="NoShow"
-                                          ButtonStyle="ButtonStyle.Secondary"
-                                          Size="ButtonSize.Small"
-                                          Disabled="true" />
+                        <AuthorizeView Roles="@AppRoles.Employee">
+                            @if (r.Status == ReservationStatus.Pending)
+                            {
+                                <RadzenButton Text="Confirm"
+                                              ButtonStyle="ButtonStyle.Success"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Confirm(r.Id))" />
 
-                            <RadzenButton Text="Cancel"
-                                          ButtonStyle="ButtonStyle.Danger"
-                                          Size="ButtonSize.Small"
-                                          Disabled="true" />
-                        }
-                        else if (r.Status == ReservationStatus.CheckedIn)
-                        {
-                            <RadzenButton Text="Check-out"
-                                          ButtonStyle="ButtonStyle.Warning"
-                                          Size="ButtonSize.Small"
-                                          Click="@(() => CheckOut(r.Id))" />
-                        }
+                                <RadzenButton Text="Cancel"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Cancel(r.Id))" />
+                            }
+                            else if (r.Status == ReservationStatus.Confirmed)
+                            {
+                                <RadzenButton Text="Check-in"
+                                              ButtonStyle="ButtonStyle.Success"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => CheckIn(r.Id))" />
+
+                                <RadzenButton Text="NoShow"
+                                              ButtonStyle="ButtonStyle.Secondary"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => NoShow(r.Id))" />
+
+                                <RadzenButton Text="Cancel"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Cancel(r.Id))" />
+                            }
+                            else if (r.Status == ReservationStatus.CheckedIn)
+                            {
+                                <RadzenButton Text="Check-out"
+                                              ButtonStyle="ButtonStyle.Warning"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => CheckOut(r.Id))" />
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Caption">Read-only</RadzenText>
+                            }
+                        </AuthorizeView>
+
+                        <AuthorizeView Roles="@AppRoles.Customer">
+                            @if (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)
+                            {
+                                <RadzenButton Text="Cancel"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Size="ButtonSize.Small"
+                                              Click="@(() => Cancel(r.Id))" />
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Caption">Read-only</RadzenText>
+                            }
+                        </AuthorizeView>
+
                         <RadzenButton Text="Details"
                                       ButtonStyle="ButtonStyle.Light"
                                       Size="ButtonSize.Small"
@@ -99,6 +133,23 @@
         Items = await _reservationService.GetVisibleAsync(_isEmployee, _userId);
     }
 
+    private async Task Confirm(int id)
+    {
+        await _reservationService.ConfirmAsync(id);
+        await LoadAsync();
+    }
+
+    private async Task Cancel(int id)
+    {
+        await _reservationService.CancelAsync(id);
+        await LoadAsync();
+    }
+
+    private async Task NoShow(int id)
+    {
+        await _reservationService.MarkNoShowAsync(id);
+        await LoadAsync();
+    }
     private async Task CheckIn(int id)
     {
         await _reservationService.CheckInAsync(id);

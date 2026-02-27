@@ -47,6 +47,55 @@ public class ReservationService(
         await reservationRepo.SaveChangesAsync();
     }
 
+    public async Task ConfirmAsync(int reservationId)
+    {
+        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+                  ?? throw new InvalidOperationException("Reservation not found.");
+
+        if (res.Status != ReservationStatus.Pending)
+            throw new InvalidOperationException("Only Pending reservations can be confirmed.");
+
+        if (res.Room is null)
+            throw new InvalidOperationException("Room not loaded.");
+
+        if (res.Room.Status != RoomStatus.Available)
+            throw new InvalidOperationException("Room is not available.");
+
+        res.Status = ReservationStatus.Confirmed;
+
+        await reservationRepo.SaveChangesAsync();
+    }
+
+    public async Task CancelAsync(int reservationId)
+    {
+        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+                  ?? throw new InvalidOperationException("Reservation not found.");
+
+        if (res.Status == ReservationStatus.CheckedIn || res.Status == ReservationStatus.CheckedOut)
+            throw new InvalidOperationException("This reservation can no longer be cancelled.");
+
+
+        if (res.Status == ReservationStatus.Cancelled || res.Status == ReservationStatus.NoShow)
+            return;
+
+        res.Status = ReservationStatus.Cancelled;
+
+        await reservationRepo.SaveChangesAsync();
+    }
+
+    public async Task MarkNoShowAsync(int reservationId)
+    {
+        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+                  ?? throw new InvalidOperationException("Reservation not found.");
+
+        if (res.Status != ReservationStatus.Confirmed)
+            throw new InvalidOperationException("Only Confirmed reservations can be marked as NoShow.");
+
+        res.Status = ReservationStatus.NoShow;
+
+        await reservationRepo.SaveChangesAsync();
+    }
+
     public async Task CheckInAsync(int reservationId)
     {
         var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
