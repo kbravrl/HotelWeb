@@ -1,3 +1,4 @@
+using HotelWeb.Auth;
 using HotelWeb.Components;
 using HotelWeb.Components.Account;
 using HotelWeb.Data;
@@ -85,6 +86,6 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-await HotelWeb.Auth.IdentitySeed.SeedRolesAsync(app.Services);
-
+await IdentitySeed.SeedRolesAsync(app.Services);
+await IdentitySeed.SeedTestUsersAsync(app.Services);
 app.Run();
