@@ -4,75 +4,17 @@
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
 
-<RadzenCard Style="margin-bottom:16px;">
-    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
 
-        <div>
-            <RadzenLabel Text="Room No" />
-            <RadzenTextBox Style="width:80px"
-                           @bind-Value="roomNo"/>
-        </div>
-
-        <div>
-            <RadzenLabel Text="Room Type" />
-            <RadzenDropDown Data="@roomTypes"
-                            TextProperty="Name"
-                            ValueProperty="Id"
-                            Style="width:160px"
-                            AllowClear="true"
-                            @bind-Value="selectedRoomTypeId" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Capacity" />
-            <RadzenNumeric Style="width:160px"
-                           @bind-Value="capacity"/>
-        </div>
-
-        <div>
-            <RadzenLabel Text="Min Price" />
-            <RadzenNumeric Style="width:160px"
-                           @bind-Value="minPrice"
-                           Min="0"
-                           Step="10" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Max Price" />
-            <RadzenNumeric Style="width:160px"
-                           @bind-Value="maxPrice"
-                           Min="0"
-                           Step="10" />
-        </div>
-
-        <AuthorizeView Roles="@AppRoles.Employee">
-            <div>
-                <RadzenLabel Text="Status" />
-                <RadzenDropDown Data="@statuses"
-                                Style="width:160px"
-                                AllowClear="true"
-                                @bind-Value="selectedStatus" />
-            </div>
-        </AuthorizeView>
-
-        <RadzenButton Variant="Variant.Flat" 
-                      Text="Search"
-                      Icon="search"
-                      Click="@DoSearch" />
-
-        <RadzenButton Variant="Variant.Flat"  
-                      Text="Clear"
-                      ButtonStyle="ButtonStyle.Light"
-                      Click="@Clear" />
-
-    </div>
-</RadzenCard>
-
-<RadzenDataGrid Data="@rooms"
-                TItem="Room"
-                AllowPaging="true"
-                PageSize="8">
-
+<RadzenDataGrid TItem="Room"
+                 Data="@Items"
+                 AllowPaging="true"
+                 PageSize="10"      
+                 AllowSorting="true"
+                 AllowFiltering="true"
+                 FilterMode="FilterMode.Simple"
+                 Responsive="true"
+                 ColumnWidth="180px"
+                 EmptyText="No room found.">
     <Columns>
 
         <RadzenDataGridColumn TItem="Room"
@@ -80,9 +22,10 @@
                               Title="Room No" />
 
         <RadzenDataGridColumn TItem="Room"
-                              Title="Type">
+                              Property="RoomType"
+                              Title="Room Type">
             <Template Context="r">
-                @r.RoomType?.Name
+                <RadzenBadge Text="@r.RoomType.ToString()" />
             </Template>
         </RadzenDataGridColumn>
 
@@ -106,7 +49,7 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="Room" Title="" Width="260px">
+        <RadzenDataGridColumn TItem="Room" Title="" Width="260px" Sortable="false" Filterable="false">
             <Template Context="r">
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
                     @if (_isAuthenticated == false)
@@ -134,28 +77,14 @@
 
 @code {
 
-    private List<Room> rooms = new();
-    private List<RoomType> roomTypes = new();
-
-    private string? roomNo;
-    private int? capacity;
-    private decimal? minPrice;
-    private decimal? maxPrice;
-
-    private int? selectedRoomTypeId;
-    private RoomStatus? selectedStatus;
-
-    private readonly List<RoomStatus> statuses =
-        Enum.GetValues<RoomStatus>().ToList();
-
+    private IEnumerable<Room> Items { get; set; } = new List<Room>();
     private bool _isAuthenticated;
     private bool _isCustomer;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserFlagsAsync();
-        roomTypes = await _roomService.GetRoomTypesAsync();
-        await DoSearch();
+        await LoadRoomsAsync();
     }
 
     private async Task LoadUserFlagsAsync()
@@ -167,43 +96,23 @@
         _isCustomer = user.IsInRole(AppRoles.Customer);
     }
 
-    private async Task DoSearch()
+    private async Task LoadRoomsAsync()
     {
-        await LoadUserFlagsAsync();
+        var allRooms = await _roomService.GetAllAsync();
 
-        RoomStatus? effectiveStatus =
-            (!_isAuthenticated || _isCustomer)
-                ? RoomStatus.Available
-                : selectedStatus;
-
-        var filter = new RoomSearchFilter
+        if (!_isAuthenticated || _isCustomer)
         {
-            RoomNo = roomNo,
-            RoomTypeId = selectedRoomTypeId,
-            Capacity = capacity,
-            MinPrice = minPrice,
-            MaxPrice = maxPrice,
-            Status = effectiveStatus
-        };
-
-        rooms = await _roomService.SearchRoomsAsync(filter);
+            Items = allRooms.Where(r => r.Status == RoomStatus.Available).ToList();
+        }
+        else
+        {
+            Items = allRooms;
+        }
     }
 
-    private async Task Clear()
+    private async Task OnRoomTypeFilterChanged()
     {
-        roomNo = null;
-        selectedRoomTypeId = null;
-        selectedStatus = null;
-        capacity = null;
-        minPrice = null;
-        maxPrice = null;
-
-        await DoSearch();
-    }
-
-    private void OnRowSelect(Room room)
-    {
-        _navigationManager.NavigateTo($"/rooms/{room.Id}");
+        await LoadRoomsAsync();
     }
 
     private void GoReservationCreate(int roomId)
