@@ -2,6 +2,8 @@
 
 @attribute [Authorize]
 
+@using System.Security.Claims
+@inject AuthenticationStateProvider _authStateProvider
 @inject IReservationService _reservationService
 @inject NavigationManager _navigationManager
 
@@ -79,15 +81,22 @@
 
 @code {
     private IEnumerable<Reservation> Items { get; set; } = new List<Reservation>();
-
+    private bool _isEmployee;
+    private string? _userId;
     protected override async Task OnInitializedAsync()
     {
+        var state = await _authStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
+        _isEmployee = user.IsInRole(AppRoles.Employee);
+        _userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
         await LoadAsync();
     }
 
     private async Task LoadAsync()
     {
-        Items = await _reservationService.GetAllAsync();
+        Items = await _reservationService.GetVisibleAsync(_isEmployee, _userId);
     }
 
     private async Task CheckIn(int id)

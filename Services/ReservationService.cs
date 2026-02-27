@@ -15,6 +15,17 @@ public class ReservationService(
     public Task<Reservation?> GetByIdAsync(int id)
         => reservationRepo.GetByIdAsync(id);
 
+    public Task<List<Reservation>> GetVisibleAsync(bool isEmployee, string? customerId)
+    {
+        if (isEmployee)
+            return reservationRepo.GetAllAsync();
+
+        if (string.IsNullOrWhiteSpace(customerId))
+            return Task.FromResult(new List<Reservation>());
+
+        return reservationRepo.GetAllForCustomerAsync(customerId);
+    }
+
     public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, string customerId)
     {
         if (checkOut <= checkIn)

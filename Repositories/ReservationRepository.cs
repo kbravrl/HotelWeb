@@ -22,6 +22,13 @@ public class ReservationRepository(ApplicationDbContext db) : IReservationReposi
             .Include(r => r.Room)
             .FirstOrDefaultAsync(r => r.Id == id);
 
+    public Task<List<Reservation>> GetAllForCustomerAsync(string customerId)
+    => db.Reservations
+        .Include(r => r.Room)
+        .Where(r => r.CustomerId == customerId)
+        .OrderByDescending(r => r.Id)
+        .ToListAsync();
+
     public async Task AddAsync(Reservation reservation)
         => await db.Reservations.AddAsync(reservation);
 
@@ -35,4 +42,5 @@ public class ReservationRepository(ApplicationDbContext db) : IReservationReposi
         );
 
     public Task SaveChangesAsync() => db.SaveChangesAsync();
+
 }
