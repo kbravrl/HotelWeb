@@ -4,7 +4,6 @@
 
 @inject IReservationService _reservationService
 @inject NavigationManager _navigationManager
-@inject NotificationService _notificationService
 
 <RadzenStack Gap="12px">
     <RadzenButton Text="Back"
@@ -22,8 +21,8 @@
             <RadzenText TextStyle="TextStyle.H4">Reservation #@_reservation.Id</RadzenText>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
-                <div><b>Status:</b> <RadzenBadge Text="@_reservation.Status.ToString()" /></div>
-                <div><b>RoomId:</b> @_reservation.RoomId</div>
+                <div><b>Status:</b> <RadzenBadge Text="@_reservation.Status.ToString()" BadgeStyle="@BadgeStyles.ForReservationStatus(_reservation.Status)" /></div>
+                <div><b>Room Number:</b> @_reservation.Room.RoomNumber</div>
                 <div><b>Check-In:</b> @_reservation.CheckIn</div>
                 <div><b>Check-Out:</b> @_reservation.CheckOut</div>
             </div>
@@ -40,15 +39,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        try
-        {
-            _reservation = await _reservationService.GetByIdAsync(Id);
-            if (_reservation is null)
-                _notificationService.Notify(NotificationSeverity.Warning, "Not found", "Reservation not found.");
-        }
-        catch (Exception ex)
-        {
-            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
-        }
+        _reservation = await _reservationService.GetByIdAsync(Id);
+         
     }
 }

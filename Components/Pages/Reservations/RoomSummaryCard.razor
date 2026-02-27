@@ -8,8 +8,14 @@ else
         <h3 style="margin-top:0;">Room @Room.RoomNumber</h3>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div><b>Type:</b> @Room.RoomType?.Name</div>
-            <div><b>Status:</b> <RadzenBadge Text="@Room.Status.ToString()" /></div>
+            <div><b>Type:</b> 
+                <RadzenBadge Text="@Room.RoomType.ToString()" 
+                             BadgeStyle="@BadgeStyles.ForRoomType(Room.RoomType)" />
+            </div>
+            <div><b>Status:</b> 
+                <RadzenBadge Text="@Room.Status.ToString()" 
+                             BadgeStyle="@BadgeStyles.ForRoomStatus(Room.Status)" />
+            </div>
             <div><b>Capacity:</b> @Room.Capacity</div>
             <div><b>Price:</b> @($"{Room.BasePrice:n0} ₺ / night")</div>
         </div>

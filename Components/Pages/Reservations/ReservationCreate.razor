@@ -5,7 +5,6 @@
 @inject IRoomService _roomService
 @inject IReservationService _reservationService
 @inject NavigationManager _navigationManager
-@inject NotificationService _notificationService
 
 <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 520px;">
     <RadzenStack Orientation="Orientation.Horizontal"
@@ -110,17 +109,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            if (roomId is null)
-                return;
+         if (roomId is null)
+            return;
 
-            _room = await _roomService.GetRoomAsync(roomId.Value);
-        }
-        finally
-        {
-            _loading = false;
-        }
+         _room = await _roomService.GetRoomAsync(roomId.Value);
+         _loading = false;
+ 
     }
 
     private async Task CreateReservation()
@@ -130,36 +124,24 @@
 
         if (!_checkIn.HasValue || !_checkOut.HasValue)
         {
-            _notificationService.Notify(NotificationSeverity.Warning, "Missing", "Please select dates.");
             return;
         }
 
         if (_checkOut.Value.Date <= _checkIn.Value.Date)
         {
-            _notificationService.Notify(NotificationSeverity.Warning, "Invalid", "Check-out must be after check-in.");
             return;
         }
 
         _saving = true;
 
-        try
-        {
-            await _reservationService.CreateAsync(
-                roomId: _room.Id,
-                checkIn: DateOnly.FromDateTime(_checkIn.Value),
-                checkOut: DateOnly.FromDateTime(_checkOut.Value)
-            );
+        await _reservationService.CreateAsync(
+            roomId: _room.Id,
+            checkIn: DateOnly.FromDateTime(_checkIn.Value),
+            checkOut: DateOnly.FromDateTime(_checkOut.Value)
+        );
 
-            _notificationService.Notify(NotificationSeverity.Success, "Success", "Reservation created (Pending).");
-            _navigationManager.NavigateTo("/reservations");
-        }
-        catch (Exception ex)
-        {
-            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
-        }
-        finally
-        {
-            _saving = false;
-        }
+        _navigationManager.NavigateTo("/reservations");
+        _saving = false;
+     
     }
 }

@@ -15,7 +15,6 @@ public class ReservationRepository(ApplicationDbContext db) : IReservationReposi
     public Task<Reservation?> GetByIdAsync(int id)
     => db.Reservations
         .Include(r => r.Room)
-            .ThenInclude(room => room.RoomType)
         .FirstOrDefaultAsync(r => r.Id == id);
 
     public Task<Reservation?> GetByIdWithRoomAsync(int id)

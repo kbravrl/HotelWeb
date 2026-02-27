@@ -4,76 +4,83 @@
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
 
+<RadzenStack Gap="12px">
+    <RadzenDataGrid TItem="Room"
+                    Data="@Items"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.Simple"
+                    Responsive="true"
+                    ColumnWidth="180px"
+                    EmptyText="No room found.">
+        <Columns>
 
-<RadzenDataGrid TItem="Room"
-                 Data="@Items"
-                 AllowPaging="true"
-                 PageSize="10"      
-                 AllowSorting="true"
-                 AllowFiltering="true"
-                 FilterMode="FilterMode.Simple"
-                 Responsive="true"
-                 ColumnWidth="180px"
-                 EmptyText="No room found.">
-    <Columns>
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="RoomNumber"
+                                  Title="Room No" 
+                                  Width="80px"/>
 
-        <RadzenDataGridColumn TItem="Room"
-                              Property="RoomNumber"
-                              Title="Room No" />
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="RoomType"
+                                  Title="Room Type"
+                                  Width="120px">
+                <Template Context="r">
+                    <RadzenBadge Text="@r.RoomType.ToString()"
+                                 BadgeStyle="@BadgeStyles.ForRoomType(r.RoomType)" />
+                </Template>
 
-        <RadzenDataGridColumn TItem="Room"
-                              Property="RoomType"
-                              Title="Room Type">
-            <Template Context="r">
-                <RadzenBadge Text="@r.RoomType.ToString()" />
-            </Template>
-        </RadzenDataGridColumn>
+            </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="Room"
-                              Property="Capacity"
-                              Title="Capacity" />
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="Capacity"
+                                  Title="Capacity" 
+                                  Width="120px" />
 
-        <RadzenDataGridColumn TItem="Room"
-                              Property="BasePrice"
-                              Title="Price/Night">
-            <Template Context="r">
-                @($"{r.BasePrice:n0} ₺")
-            </Template>
-        </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="BasePrice"
+                                  Title="Price/Night"
+                                  Width="120px">
+                <Template Context="r">
+                    @($"{r.BasePrice:n0} ₺")
+                </Template>
+            </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="Room"
-                              Property="Status"
-                              Title="Status">
-            <Template Context="r">
-                <RadzenBadge Text="@r.Status.ToString()" />
-            </Template>
-        </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="Status"
+                                  Title="Status"
+                                  Width="120px">
+                <Template Context="r">
+                    <RadzenBadge Text="@r.Status.ToString()"
+                                 BadgeStyle="@BadgeStyles.ForRoomStatus(r.Status)" />
+                </Template>
+            </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="Room" Title="" Width="260px" Sortable="false" Filterable="false">
-            <Template Context="r">
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
-                    @if (_isAuthenticated == false)
-                    {
-                        <RadzenButton Variant="Variant.Flat" 
-                                      Text="Reserve"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(() => RedirectToLoginForReservation(r.Id))" />
-                    }
-                    else if (_isCustomer)
-                    {
-                        <RadzenButton Variant="Variant.Flat" 
-                                      Text="Reserve"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(() => GoReservationCreate(r.Id))" />
-                    }
-                </RadzenStack>
-            </Template>
-        </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Room" Title="Actions" Width="260px" Sortable="false" Filterable="false">
+                <Template Context="r">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
+                        @if (_isAuthenticated == false)
+                        {
+                            <RadzenButton Text="Reserve"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Click="@(() => RedirectToLoginForReservation(r.Id))" />
+                        }
+                        else if (_isCustomer)
+                        {
+                            <RadzenButton Text="Reserve"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Click="@(() => GoReservationCreate(r.Id))" />
+                        }
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
 
-    </Columns>
-</RadzenDataGrid>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack >
 
 @code {
 
@@ -108,11 +115,6 @@
         {
             Items = allRooms;
         }
-    }
-
-    private async Task OnRoomTypeFilterChanged()
-    {
-        await LoadRoomsAsync();
     }
 
     private void GoReservationCreate(int roomId)
