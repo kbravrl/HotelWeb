@@ -11,9 +11,11 @@ public class ReservationService(
 {
     public Task<List<Reservation>> GetAllAsync()
         => reservationRepo.GetAllAsync();
+
     public Task<Reservation?> GetByIdAsync(int id)
         => reservationRepo.GetByIdAsync(id);
-    public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut)
+
+    public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, string customerId)
     {
         if (checkOut <= checkIn)
             throw new InvalidOperationException("Check-out must be after check-in.");
@@ -27,11 +29,13 @@ public class ReservationService(
             RoomId = roomId,
             CheckIn = checkIn,
             CheckOut = checkOut,
-            Status = ReservationStatus.Pending
+            Status = ReservationStatus.Pending,
+            CustomerId = customerId
         });
 
         await reservationRepo.SaveChangesAsync();
     }
+
     public async Task CheckInAsync(int reservationId)
     {
         var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)

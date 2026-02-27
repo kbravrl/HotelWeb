@@ -6,7 +6,7 @@ public interface IReservationService
 {
     Task<List<Reservation>> GetAllAsync();
     Task<Reservation?> GetByIdAsync(int id);
-    Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut);
+    Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, string customerId);
     Task CheckInAsync(int reservationId);
     Task CheckOutAsync(int reservationId);
 }

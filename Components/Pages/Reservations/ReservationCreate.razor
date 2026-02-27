@@ -2,6 +2,8 @@
 
 @attribute [Authorize(Roles = AppRoles.Customer)]
 
+@using System.Security.Claims
+@inject AuthenticationStateProvider _authStateProvider
 @inject IRoomService _roomService
 @inject IReservationService _reservationService
 @inject NavigationManager _navigationManager
@@ -132,12 +134,20 @@
             return;
         }
 
+        var state = await _authStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var customerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(customerId))
+            return;
+
         _saving = true;
 
         await _reservationService.CreateAsync(
             roomId: _room.Id,
             checkIn: DateOnly.FromDateTime(_checkIn.Value),
-            checkOut: DateOnly.FromDateTime(_checkOut.Value)
+            checkOut: DateOnly.FromDateTime(_checkOut.Value),
+            customerId: customerId
         );
 
         _navigationManager.NavigateTo("/reservations");

@@ -33,6 +33,7 @@ namespace HotelWeb.Data
                 new Reservation
                 {
                     Id = 1,
+                    CustomerId = "2",
                     RoomId = 4,
                     CheckIn = new DateOnly(2026, 2, 26),
                     CheckOut = new DateOnly(2026, 3, 1),
