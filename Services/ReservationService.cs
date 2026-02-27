@@ -72,6 +72,5 @@ public class ReservationService(
         });
 
         await reservationRepo.SaveChangesAsync();
-        await taskRepo.SaveChangesAsync();
     }
 }
