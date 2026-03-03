@@ -14,7 +14,6 @@ public class RoomRepository(ApplicationDbContext db) : IRoomRepository
 
     public async Task<Room?> GetByIdAsync(int id)
         => await db.Rooms
-            .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id);
 
     public Task SaveChangesAsync() => db.SaveChangesAsync();

@@ -40,7 +40,6 @@ public class HousekeepingTaskService(
         if (room.Status == RoomStatus.Cleaning)
             room.Status = RoomStatus.Available;
 
-        await taskRepo.SaveChangesAsync();
         await roomRepo.SaveChangesAsync();
     }
 }
