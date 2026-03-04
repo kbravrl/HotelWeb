@@ -10,6 +10,9 @@ namespace HotelWeb.Data
         public DbSet<Room> Rooms => Set<Room>();
         public DbSet<Reservation> Reservations => Set<Reservation>();
         public DbSet<HousekeepingTask> HousekeepingTasks => Set<HousekeepingTask>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<Employee> Employees => Set<Employee>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

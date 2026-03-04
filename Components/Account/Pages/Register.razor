@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using HotelWeb.Data
+@using HotelWeb.Models
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -14,6 +15,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext DbContext
 
 <PageTitle>Register</PageTitle>
 
@@ -86,6 +88,16 @@
         }
 
         await UserManager.AddToRoleAsync(user, AppRoles.Customer);
+
+        var customer = new Customer
+        {
+            ApplicationUserId = user.Id,
+            FirstName = "",
+            LastName = "",
+            Email = Input.Email
+        };
+        DbContext.Customers.Add(customer);
+        await DbContext.SaveChangesAsync();
 
         Logger.LogInformation("User created a new account with password.");
 
