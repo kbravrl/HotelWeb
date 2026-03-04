@@ -1,0 +1,57 @@
+@inject NavigationManager Navigation
+
+<RadzenCard class="rz-shadow-2">
+    <RadzenText TextStyle="TextStyle.H6" Style="margin-bottom: 1rem; font-weight: 600;">
+        <RadzenIcon Icon="dashboard" Style="vertical-align: middle; margin-right: 0.5rem;" /> Hızlı Erişim
+    </RadzenText>
+
+    <RadzenRow Gap="1rem">
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+            <RadzenButton Click="@(() => Navigation.NavigateTo("/rooms"))" 
+                          ButtonStyle="ButtonStyle.Light" 
+                          Variant="Variant.Outlined"
+                          Style="width: 100%; height: 100px;">
+                <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                    <RadzenIcon Icon="meeting_room" Style="font-size: 2rem;" />
+                    <RadzenText TextStyle="TextStyle.Body1">Oda Yönetimi</RadzenText>
+                </RadzenStack>
+            </RadzenButton>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+            <RadzenButton Click="@(() => Navigation.NavigateTo("/reservations"))" 
+                          ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Outlined"
+                          Style="width: 100%; height: 100px;">
+                <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                    <RadzenIcon Icon="event_note" Style="font-size: 2rem;" />
+                    <RadzenText TextStyle="TextStyle.Body1">Rezervasyonlar</RadzenText>
+                </RadzenStack>
+            </RadzenButton>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+            <RadzenButton Click="@(() => Navigation.NavigateTo("/customers"))" 
+                          ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Outlined"
+                          Style="width: 100%; height: 100px;">
+                <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                    <RadzenIcon Icon="people" Style="font-size: 2rem;" />
+                    <RadzenText TextStyle="TextStyle.Body1">Müşteriler</RadzenText>
+                </RadzenStack>
+            </RadzenButton>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+            <RadzenButton Click="@(() => Navigation.NavigateTo("/housekeeping"))" 
+                          ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Outlined"
+                          Style="width: 100%; height: 100px;">
+                <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                    <RadzenIcon Icon="cleaning_services" Style="font-size: 2rem;" />
+                    <RadzenText TextStyle="TextStyle.Body1">Temizlik</RadzenText>
+                </RadzenStack>
+            </RadzenButton>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>

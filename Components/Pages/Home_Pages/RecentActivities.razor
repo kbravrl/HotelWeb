@@ -1,0 +1,163 @@
+@using HotelWeb.Models
+@using HotelWeb.Enums
+
+<RadzenCard class="rz-shadow-2" Style="min-height: 400px;">
+    <RadzenText TextStyle="TextStyle.H6" Style="margin-bottom: 1rem; font-weight: 600;">
+        <RadzenIcon Icon="notifications" Style="vertical-align: middle; margin-right: 0.5rem;" /> Son Aktiviteler
+    </RadzenText>
+
+    <RadzenRow Gap="1rem">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin-bottom: 0.75rem; font-weight: 600; color: var(--rz-primary);">
+                <RadzenIcon Icon="event_note" Style="vertical-align: middle; font-size: 0.875rem; margin-right: 0.25rem;" />
+                Rezervasyonlar
+            </RadzenText>
+
+            @if (_reservationActivities.Any())
+            {
+                <div style="position: relative; padding-left: 2rem;">
+                    @foreach (var activity in _reservationActivities)
+                    {
+                        var (icon, color, action, description, time) = activity;
+                        <div style="position: relative; margin-bottom: 1.5rem;">
+                            <div style="position: absolute; left: -2rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; background-color: @color; border: 2px solid white; box-shadow: 0 0 0 2px @color;"></div>
+                            <div style="border-left: 2px solid #e0e0e0; padding-left: 1rem; padding-bottom: 0.5rem;">
+                                <RadzenStack Gap="0.25rem">
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="@($"font-weight: 600; color: {color};")">
+                                        <RadzenIcon Icon="@icon" Style="vertical-align: middle; font-size: 1rem; margin-right: 0.25rem;" />
+                                        @action
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        @description
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">
+                                        @time
+                                    </RadzenText>
+                                </RadzenStack>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">
+                    Henüz rezervasyon yok
+                </RadzenText>
+            }
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin-bottom: 0.75rem; font-weight: 600; color: var(--rz-success);">
+                <RadzenIcon Icon="cleaning_services" Style="vertical-align: middle; font-size: 0.875rem; margin-right: 0.25rem;" />
+                Temizlik
+            </RadzenText>
+
+            @if (_housekeepingActivities.Any())
+            {
+                <div style="position: relative; padding-left: 2rem;">
+                    @foreach (var activity in _housekeepingActivities)
+                    {
+                        var (icon, color, action, description, time) = activity;
+                        <div style="position: relative; margin-bottom: 1.5rem;">
+                            <div style="position: absolute; left: -2rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; background-color: @color; border: 2px solid white; box-shadow: 0 0 0 2px @color;"></div>
+                            <div style="border-left: 2px solid #e0e0e0; padding-left: 1rem; padding-bottom: 0.5rem;">
+                                <RadzenStack Gap="0.25rem">
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="@($"font-weight: 600; color: {color};")">
+                                        <RadzenIcon Icon="@icon" Style="vertical-align: middle; font-size: 1rem; margin-right: 0.25rem;" />
+                                        @action
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        @description
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">
+                                        @time
+                                    </RadzenText>
+                                </RadzenStack>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">
+                    Henüz temizlik aktivitesi yok
+                </RadzenText>
+            }
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+@code {
+    [Parameter] public List<Reservation> Reservations { get; set; } = new();
+    [Parameter] public List<HousekeepingTask> HousekeepingTasks { get; set; } = new();
+
+    private List<(string icon, string color, string action, string description, DateTime time)> _reservationActivities = new();
+    private List<(string icon, string color, string action, string description, DateTime time)> _housekeepingActivities = new();
+
+    protected override void OnParametersSet()
+    {
+        _reservationActivities = new();
+        _housekeepingActivities = new();
+
+        if (Reservations != null)
+        {
+            foreach (var reservation in Reservations)
+            {
+                var (icon, color, action) = GetReservationDisplayInfo(reservation);
+                var description = $"Oda {reservation.Room?.RoomNumber ?? "?"} - {reservation.Customer?.FirstName ?? "Müşteri"} {reservation.Customer?.LastName ?? ""}";
+                _reservationActivities.Add((icon, color, action, description, reservation.CreatedAt));
+            }
+
+            _reservationActivities = _reservationActivities
+                .OrderByDescending(a => a.time)
+                .Take(5)
+                .ToList();
+        }
+
+        if (HousekeepingTasks != null)
+        {
+            foreach (var task in HousekeepingTasks)
+            {
+                var (icon, color, action) = GetHousekeepingDisplayInfo(task);
+                var employeeName = task.AssignedToEmployee != null 
+                    ? $"{task.AssignedToEmployee.FirstName} {task.AssignedToEmployee.LastName}"
+                    : "Atanmamış";
+                var description = $"Oda {task.Room?.RoomNumber ?? "?"} - {employeeName}";
+                var time = task.CompletedAt ?? task.CreatedAt;
+                _housekeepingActivities.Add((icon, color, action, description, time));
+            }
+
+            _housekeepingActivities = _housekeepingActivities
+                .OrderByDescending(a => a.time)
+                .Take(5)
+                .ToList();
+        }
+    }
+
+    private (string icon, string color, string action) GetReservationDisplayInfo(Reservation reservation)
+    {
+        return reservation.Status switch
+        {
+            ReservationStatus.Confirmed => ("event_available", "#0d6efd", "Yeni Rezervasyon"),
+            ReservationStatus.CheckedIn => ("login", "#198754", "Check-in"),
+            ReservationStatus.CheckedOut => ("logout", "#dc3545", "Check-out"),
+            ReservationStatus.Cancelled => ("cancel", "#ffc107", "İptal Edildi"),
+            ReservationStatus.NoShow => ("event_busy", "#dc3545", "Gelmedi"),
+            _ => ("event", "#6c757d", "Rezervasyon")
+        };
+    }
+
+    private (string icon, string color, string action) GetHousekeepingDisplayInfo(HousekeepingTask task)
+    {
+        return task.Status switch
+        {
+            HousekeepingTaskStatus.Pending => ("schedule", "#6c757d", "Temizlik Bekliyor"),
+            HousekeepingTaskStatus.InProgress => ("cleaning_services", "#0dcaf0", "Temizlik Devam Ediyor"),
+            HousekeepingTaskStatus.Done => ("check_circle", "#198754", "Temizlik Tamamlandı"),
+            _ => ("cleaning_services", "#6c757d", "Temizlik Görevi")
+        };
+    }
+}
+

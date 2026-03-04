@@ -1,0 +1,50 @@
+@using HotelWeb.Models
+
+<RadzenRow Gap="1rem">
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard class="rz-shadow-2" Style="height: 130px;">
+            <RadzenStack Gap="0.5rem">
+                <RadzenIcon Icon="meeting_room" Style="font-size: 2rem; color: var(--rz-primary);" />
+                <RadzenText TextStyle="TextStyle.H4" Style="font-weight: 600;">@TotalRooms</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">Toplam Oda</RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard class="rz-shadow-2" Style="height: 130px;">
+            <RadzenStack Gap="0.5rem">
+                <RadzenIcon Icon="event_available" Style="font-size: 2rem; color: var(--rz-success);" />
+                <RadzenText TextStyle="TextStyle.H4" Style="font-weight: 600;">@ActiveReservations</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">Aktif Rezervasyon</RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard class="rz-shadow-2" Style="height: 130px;">
+            <RadzenStack Gap="0.5rem">
+                <RadzenIcon Icon="people" Style="font-size: 2rem; color: var(--rz-info);" />
+                <RadzenText TextStyle="TextStyle.H4" Style="font-weight: 600;">@TotalCustomers</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">Toplam Müşteri</RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard class="rz-shadow-2" Style="height: 130px;">
+            <RadzenStack Gap="0.5rem">
+                <RadzenIcon Icon="cleaning_services" Style="font-size: 2rem; color: var(--rz-warning);" />
+                <RadzenText TextStyle="TextStyle.H4" Style="font-weight: 600;">@OpenTasks</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">Temizlik Görevi</RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public int TotalRooms { get; set; }
+    [Parameter] public int ActiveReservations { get; set; }
+    [Parameter] public int TotalCustomers { get; set; }
+    [Parameter] public int OpenTasks { get; set; }
+}

@@ -1,7 +1,108 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+@inject IRoomService RoomService
+@inject IReservationService ReservationService
+@inject ICustomerService CustomerService
+@inject IHousekeepingTaskService HousekeepingService
 
-<h1>Hello, world!</h1>
+<PageTitle>Otel Yönetim Sistemi - Ana Sayfa</PageTitle>
 
-Welcome to your new app.
+<RadzenStack Gap="1.5rem" Style="padding: 1rem;">
+
+    @if (_loading)
+    {
+        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        <RadzenCard class="rz-shadow-3" Style="background-color: var(--rz-primary); color: white; padding: 2rem;">
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.H3" Style="color: white; font-weight: 600;">
+                    <RadzenIcon Icon="hotel" Style="vertical-align: middle; margin-right: 0.5rem;" />
+                    Otel Yönetim Sistemi
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle1" Style="color: white; opacity: 0.9;">
+                    Hoş geldiniz
+                </RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+
+        <StatisticsCards TotalRooms="@_totalRooms"
+                        ActiveReservations="@_activeReservations"
+                        TotalCustomers="@_totalCustomers"
+                        OpenTasks="@_openTasks" />
+
+        <QuickAccessMenu />
+
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12" SizeMD="6">
+                <RecentActivities Reservations="@_recentReservations" 
+                                HousekeepingTasks="@_recentHousekeepingTasks" />
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="6">
+                <OccupancyChart Data="@_occupancyData" />
+            </RadzenColumn>
+        </RadzenRow>
+    }
+
+</RadzenStack>
+
+@code {
+    private bool _loading = true;
+    private int _totalRooms;
+    private int _activeReservations;
+    private int _totalCustomers;
+    private int _openTasks;
+    private List<Reservation> _recentReservations = new();
+    private List<HousekeepingTask> _recentHousekeepingTasks = new();
+    private List<OccupancyChart.OccupancyData> _occupancyData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            var rooms = await RoomService.GetAllAsync();
+            var reservations = await ReservationService.GetAllAsync();
+            var customers = await CustomerService.GetAllCustomersAsync();
+            var tasks = await HousekeepingService.GetOpenTasksAsync();
+
+            _totalRooms = rooms.Count;
+            _totalCustomers = customers.Count;
+            _openTasks = tasks.Count;
+            _activeReservations = reservations.Count(r =>
+                r.Status == ReservationStatus.Confirmed ||
+                r.Status == ReservationStatus.CheckedIn);
+
+            _recentReservations = reservations
+                .Where(r => r.CreatedAt > DateTime.MinValue)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(10)
+                .ToList();
+
+            _recentHousekeepingTasks = tasks
+                .OrderByDescending(t => t.CompletedAt ?? t.CreatedAt)
+                .Take(10)
+                .ToList();
+
+            var occupiedCount = rooms.Count(r => r.Status == RoomStatus.Occupied);
+            var availableCount = rooms.Count(r => r.Status == RoomStatus.Available);
+            var cleaningCount = rooms.Count(r => r.Status == RoomStatus.Cleaning);
+            var maintenanceCount = rooms.Count(r => r.Status == RoomStatus.Maintenance);
+
+            _occupancyData = new();
+            if (occupiedCount > 0) _occupancyData.Add(new() { Status = "Dolu", Count = occupiedCount });
+            if (availableCount > 0) _occupancyData.Add(new() { Status = "Boş", Count = availableCount });
+            if (cleaningCount > 0) _occupancyData.Add(new() { Status = "Temizleniyor", Count = cleaningCount });
+            if (maintenanceCount > 0) _occupancyData.Add(new() { Status = "Bakımda", Count = maintenanceCount });
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
+    }
+}

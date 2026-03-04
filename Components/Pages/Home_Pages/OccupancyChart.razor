@@ -1,0 +1,31 @@
+<RadzenCard class="rz-shadow-2" Style="min-height: 400px;">
+    <RadzenText TextStyle="TextStyle.H6" Style="margin-bottom: 1rem; font-weight: 600;">
+        <RadzenIcon Icon="pie_chart" Style="vertical-align: middle; margin-right: 0.5rem;" /> Oda Doluluk Oranı
+    </RadzenText>
+
+    @if (Data.Any(x => x.Count > 0))
+    {
+        <RadzenChart Style="height: 320px;">
+            <RadzenDonutSeries Data="@Data" CategoryProperty="Status" ValueProperty="Count">
+                <ChildContent>
+                    <RadzenSeriesDataLabels Visible="true" />
+                </ChildContent>
+            </RadzenDonutSeries>
+            <RadzenChartLegend Position="LegendPosition.Bottom" />
+        </RadzenChart>
+    }
+    else
+    {
+        <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">Veri yok</RadzenText>
+    }
+</RadzenCard>
+
+@code {
+    public class OccupancyData
+    {
+        public string Status { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    [Parameter] public List<OccupancyData> Data { get; set; } = new();
+}
