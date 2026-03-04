@@ -1,0 +1,126 @@
+@page "/employees"
+@rendermode InteractiveServer
+@using HotelWeb.Models
+@using HotelWeb.Services
+
+@inject IEmployeeService EmployeeService
+
+<PageTitle>Employees</PageTitle>
+
+<RadzenStack Gap="12px">
+    <RadzenText TextStyle="TextStyle.H3">Employees</RadzenText>
+    
+    <RadzenDataGrid TItem="Employee"
+                    Data="@employees"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.Simple"
+                    Responsive="true"
+                    EmptyText="No employees found.">
+        <Columns>
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Id"
+                                  Title="ID"
+                                  Width="80px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="FirstName"
+                                  Title="First Name"
+                                  Width="150px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="LastName"
+                                  Title="Last Name"
+                                  Width="150px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Email"
+                                  Title="Email"
+                                  Width="200px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Phone"
+                                  Title="Phone"
+                                  Width="150px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Position"
+                                  Title="Position"
+                                  Width="180px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Department"
+                                  Title="Department"
+                                  Width="150px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="City"
+                                  Title="City"
+                                  Width="120px" />
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="HireDate"
+                                  Title="Hire Date"
+                                  Width="150px">
+                <Template Context="employee">
+                    @(employee.HireDate?.ToString("dd/MM/yyyy") ?? "-")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="Salary"
+                                  Title="Salary"
+                                  Width="120px">
+                <Template Context="employee">
+                    @(employee.Salary.HasValue ? $"{employee.Salary.Value:n0} ₺" : "-")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="IsActive"
+                                  Title="Status"
+                                  Width="100px">
+                <Template Context="employee">
+                    <RadzenBadge Text="@(employee.IsActive ? "Active" : "Inactive")"
+                                 BadgeStyle="@(employee.IsActive ? BadgeStyle.Success : BadgeStyle.Danger)" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Title="Tasks"
+                                  Width="100px"
+                                  Sortable="false"
+                                  Filterable="false">
+                <Template Context="employee">
+                    <RadzenBadge Text="@employee.AssignedTasks.Count.ToString()"
+                                 BadgeStyle="BadgeStyle.Info" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Property="CreatedAt"
+                                  Title="Created"
+                                  Width="180px">
+                <Template Context="employee">
+                    @employee.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
+
+@code {
+    private List<Employee> employees = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployees();
+    }
+
+    private async Task LoadEmployees()
+    {
+        employees = await EmployeeService.GetAllEmployeesWithTasksAsync();
+    }
+}

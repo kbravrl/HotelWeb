@@ -32,6 +32,10 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IHousekeepingTaskRepository, HousekeepingTaskRepository>();
 builder.Services.AddScoped<IHousekeepingTaskService, HousekeepingTaskService>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 builder.Services.AddAuthentication(options =>
 {
