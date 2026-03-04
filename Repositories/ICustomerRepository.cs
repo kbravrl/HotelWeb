@@ -5,6 +5,7 @@ namespace HotelWeb.Repositories;
 public interface ICustomerRepository
 {
     Task<List<Customer>> GetAllAsync();
+    Task<List<Customer>> GetAllWithReservationsAsync();
     Task<Customer?> GetByIdAsync(int id);
     Task<Customer?> GetByEmailAsync(string email);
     Task AddAsync(Customer customer);

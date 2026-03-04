@@ -12,6 +12,23 @@ public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
 
+    public async Task<List<Customer>> GetAllWithReservationsAsync()
+        => await db.Customers
+            .Include(c => c.Reservations)
+            .AsNoTracking()
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync();
+
+    public async Task<List<(Customer Customer, int ReservationCount)>> GetAllWithReservationCountAsync()
+        => await db.Customers
+            .AsNoTracking()
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => new ValueTuple<Customer, int>(
+                c,
+                c.Reservations.Count
+            ))
+            .ToListAsync();
+
     public async Task<Customer?> GetByIdAsync(int id)
         => await db.Customers
             .FirstOrDefaultAsync(c => c.Id == id);

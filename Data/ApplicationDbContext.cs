@@ -31,21 +31,6 @@ namespace HotelWeb.Data
                 new Room { Id = 9, RoomNumber = "302", RoomType = RoomType.Suite, Capacity = 4, BasePrice = 5900, Status = RoomStatus.Available },
                 new Room { Id = 10, RoomNumber = "303", RoomType = RoomType.Suite, Capacity = 4, BasePrice = 6100, Status = RoomStatus.Cleaning }
             );
-
-            builder.Entity<Reservation>().HasData(
-                new Reservation
-                {
-                    Id = 1,
-                    CustomerId = "2",
-                    RoomId = 4,
-                    CheckIn = new DateOnly(2026, 2, 26),
-                    CheckOut = new DateOnly(2026, 3, 1),
-                    GuestCount = 2,
-                    Status = ReservationStatus.Confirmed,
-                    TotalPrice = 0m,
-                    CreatedAt = new DateTime(2026, 2, 20, 0, 0, 0, DateTimeKind.Utc)
-                }
-            );
         }
     }
 }

@@ -84,7 +84,7 @@
                                   Sortable="false"
                                   Filterable="false">
                 <Template Context="customer">
-                    <RadzenBadge Text="@customer.Reservations.Count.ToString()"
+                    <RadzenBadge Text="@((customer.Reservations?.Count ?? 0).ToString())"
                                  BadgeStyle="BadgeStyle.Info" />
                 </Template>
             </RadzenDataGridColumn>
@@ -102,6 +102,6 @@
 
     private async Task LoadCustomers()
     {
-        customers = await CustomerService.GetAllCustomersAsync();
+        customers = await CustomerService.GetAllCustomersWithReservationsAsync();
     }
 }

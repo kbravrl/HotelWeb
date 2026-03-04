@@ -6,7 +6,8 @@ namespace HotelWeb.Services;
 
 public class ReservationService(
     IReservationRepository reservationRepo,
-    IHousekeepingTaskRepository taskRepo
+    IHousekeepingTaskRepository taskRepo,
+    IRoomRepository roomRepo
 ) : IReservationService
 {
     public Task<List<Reservation>> GetAllAsync()
@@ -15,25 +16,39 @@ public class ReservationService(
     public Task<Reservation?> GetByIdAsync(int id)
         => reservationRepo.GetByIdAsync(id);
 
-    public Task<List<Reservation>> GetVisibleAsync(bool isEmployee, string? customerId)
+    public Task<List<Reservation>> GetVisibleAsync(bool isEmployee, int? customerId)
     {
         if (isEmployee)
             return reservationRepo.GetAllAsync();
 
-        if (string.IsNullOrWhiteSpace(customerId))
+        if (customerId == null || customerId == 0)
             return Task.FromResult(new List<Reservation>());
 
-        return reservationRepo.GetAllForCustomerAsync(customerId);
+        return reservationRepo.GetAllForCustomerAsync(customerId.Value);
     }
 
-    public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, string customerId)
+    public async Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, int customerId, int guestCount)
     {
         if (checkOut <= checkIn)
             throw new InvalidOperationException("Check-out must be after check-in.");
 
+        if (guestCount <= 0)
+            throw new InvalidOperationException("Guest count must be at least 1.");
+
+        var room = await roomRepo.GetByIdAsync(roomId);
+        if (room is null)
+            throw new InvalidOperationException("Room not found.");
+
+        if (guestCount > room.Capacity)
+            throw new InvalidOperationException($"Guest count exceeds room capacity ({room.Capacity}).");
+
         var hasOverlap = await reservationRepo.HasOverlapAsync(roomId, checkIn, checkOut);
         if (hasOverlap)
             throw new InvalidOperationException("This room is not available for selected dates.");
+
+        // Toplam fiyatı hesapla (gece sayısı x oda fiyatı)
+        var numberOfNights = checkOut.DayNumber - checkIn.DayNumber;
+        var totalPrice = numberOfNights * room.BasePrice;
 
         await reservationRepo.AddAsync(new Reservation
         {
@@ -41,7 +56,9 @@ public class ReservationService(
             CheckIn = checkIn,
             CheckOut = checkOut,
             Status = ReservationStatus.Pending,
-            CustomerId = customerId
+            CustomerId = customerId,
+            GuestCount = guestCount,
+            TotalPrice = totalPrice
         });
 
         await reservationRepo.SaveChangesAsync();

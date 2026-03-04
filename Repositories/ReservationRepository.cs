@@ -10,24 +10,29 @@ public class ReservationRepository(ApplicationDbContext db) : IReservationReposi
     public Task<List<Reservation>> GetAllAsync()
         => db.Reservations
             .Include(r => r.Room)
+            .Include(r => r.Customer)
             .OrderByDescending(r => r.Id)
             .ToListAsync();
+
     public Task<Reservation?> GetByIdAsync(int id)
-    => db.Reservations
-        .Include(r => r.Room)
-        .FirstOrDefaultAsync(r => r.Id == id);
+        => db.Reservations
+            .Include(r => r.Room)
+            .Include(r => r.Customer)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
     public Task<Reservation?> GetByIdWithRoomAsync(int id)
         => db.Reservations
             .Include(r => r.Room)
+            .Include(r => r.Customer)
             .FirstOrDefaultAsync(r => r.Id == id);
 
-    public Task<List<Reservation>> GetAllForCustomerAsync(string customerId)
-    => db.Reservations
-        .Include(r => r.Room)
-        .Where(r => r.CustomerId == customerId)
-        .OrderByDescending(r => r.Id)
-        .ToListAsync();
+    public Task<List<Reservation>> GetAllForCustomerAsync(int customerId)
+        => db.Reservations
+            .Include(r => r.Room)
+            .Include(r => r.Customer)
+            .Where(r => r.CustomerId == customerId)
+            .OrderByDescending(r => r.Id)
+            .ToListAsync();
 
     public async Task AddAsync(Reservation reservation)
         => await db.Reservations.AddAsync(reservation);
