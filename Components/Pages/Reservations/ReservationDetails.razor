@@ -5,65 +5,381 @@
 @using System.Security.Claims
 @inject AuthenticationStateProvider _authStateProvider
 @inject IReservationService _reservationService
+@inject ICustomerService _customerService
 @inject NavigationManager _navigationManager
 
-@if (Reservation is null)
+<PageTitle>Reservation Details</PageTitle>
+
+@if (_loading)
 {
-    <RadzenAlert Severity="AlertSeverity.Warning">Reservation not found.</RadzenAlert>
+    <RadzenStack Gap="1rem" class="rz-p-4 rz-my-12 rz-mx-auto" Style="max-width: 900px;">
+        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+        <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center">
+            Loading reservation details...
+        </RadzenText>
+    </RadzenStack>
+}
+else if (Reservation is null)
+{
+    <RadzenStack Gap="1rem" class="rz-p-4 rz-my-12 rz-mx-auto" Style="max-width: 900px;">
+        <RadzenAlert Severity="AlertSeverity.Warning" 
+                     Variant="Variant.Flat" 
+                     AlertStyle="AlertStyle.Warning">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="warning" />
+                <RadzenText TextStyle="TextStyle.Body1">
+                    Reservation not found.
+                </RadzenText>
+            </RadzenStack>
+        </RadzenAlert>
+
+        <RadzenButton Text="Back to Reservations"
+                      Icon="arrow_back"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@(() => _navigationManager.NavigateTo("/reservations"))" />
+    </RadzenStack>
 }
 else
 {
-    <RadzenStack Gap="12px">
-        <RadzenButton Text="Back"
-                      Icon="arrow_back"
-                      ButtonStyle="ButtonStyle.Light"
-                      Click="@(()=> _navigationManager.NavigateTo("/reservations"))" />
-
-        @if (Reservation is null)
-        {
-            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-        }
-        else
-        {
+    <div class="rz-my-12 rz-mx-auto" style="max-width: 900px;">
+        <RadzenStack Gap="1rem">
+            <!-- Header Section -->
             <RadzenCard>
-                <RadzenText TextStyle="TextStyle.H4">Reservation #@Reservation.Id</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" 
+                             JustifyContent="JustifyContent.SpaceBetween" 
+                             AlignItems="AlignItems.Center"
+                             Gap="1rem">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                            RESERVATION
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.H4">
+                            Reservation #@Reservation.Id
+                        </RadzenText>
+                    </RadzenStack>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
-                    <div><b>Status:</b> <RadzenBadge Text="@Reservation.Status.ToString()" BadgeStyle="@BadgeStyles.ForReservationStatus(Reservation.Status)" /></div>
-                    <div><b>Room Number:</b> @Reservation.Room.RoomNumber</div>
-                    <div><b>Check-In:</b> @Reservation.CheckIn</div>
-                    <div><b>Check-Out:</b> @Reservation.CheckOut</div>
-                </div>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                        <RadzenBadge Text="@Reservation.Status.ToString()" 
+                                     BadgeStyle="@BadgeStyles.ForReservationStatus(Reservation.Status)"
+                                     Variant="Variant.Filled" 
+                                     Style="font-size: 0.875rem; padding: 0.5rem 1rem;" />
+
+                        <RadzenButton Text="Back"
+                                      Icon="arrow_back"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Variant="Variant.Outlined"
+                                      Size="ButtonSize.Medium"
+                                      Click="@(() => _navigationManager.NavigateTo("/reservations"))" />
+                    </RadzenStack>
+                </RadzenStack>
             </RadzenCard>
 
-            <RoomSummaryCard Room="@Reservation.Room" />
-        }
-    </RadzenStack>
+            <!-- Main Content Row -->
+            <RadzenRow Gap="1rem">
+                <!-- Left Column - Reservation & Customer Info -->
+                <RadzenColumn Size="12" SizeMD="7">
+                    <RadzenStack Gap="1rem">
+                        <!-- Reservation Details Card -->
+                        <RadzenCard>
+                            <RadzenStack Gap="1rem">
+                                <RadzenText TextStyle="TextStyle.H6">
+                                    <RadzenIcon Icon="event" class="rz-mr-2" />
+                                    Reservation Information
+                                </RadzenText>
+
+                                <RadzenRow Gap="1rem">
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Check-In Date
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1">
+                                                <RadzenIcon Icon="login" class="rz-mr-2 rz-color-success" />
+                                                @Reservation.CheckIn.ToString("dddd, dd MMMM yyyy")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Check-Out Date
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1">
+                                                <RadzenIcon Icon="logout" class="rz-mr-2 rz-color-danger" />
+                                                @Reservation.CheckOut.ToString("dddd, dd MMMM yyyy")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Guests
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1">
+                                                <RadzenIcon Icon="people" class="rz-mr-2" />
+                                                @Reservation.GuestCount @(Reservation.GuestCount == 1 ? "Guest" : "Guests")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Total Price
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.H6" class="rz-color-success">
+                                                @Reservation.TotalPrice.ToString("C")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Created At
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption">
+                                                <RadzenIcon Icon="schedule" class="rz-mr-2" />
+                                                @Reservation.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenCard>
+
+                        <!-- Customer Information Card -->
+                        @if (Reservation.Customer != null)
+                        {
+                            <RadzenCard>
+                                <RadzenStack Gap="1rem">
+                                    <RadzenText TextStyle="TextStyle.H6">
+                                        <RadzenIcon Icon="person" class="rz-mr-2" />
+                                        Customer Information
+                                    </RadzenText>
+
+                                    <RadzenRow Gap="1rem">
+                                        <RadzenColumn Size="12">
+                                            <RadzenStack Gap="0.5rem">
+                                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                    Full Name
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.H6">
+                                                    @Reservation.Customer.FirstName @Reservation.Customer.LastName
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+
+                                        <RadzenColumn Size="12">
+                                            <RadzenStack Gap="0.5rem">
+                                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                    Email Address
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body1">
+                                                    <RadzenIcon Icon="email" class="rz-mr-2" />
+                                                    @Reservation.Customer.Email
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+
+                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.Phone))
+                                        {
+                                            <RadzenColumn Size="12">
+                                                <RadzenStack Gap="0.5rem">
+                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                        Phone Number
+                                                    </RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body1">
+                                                        <RadzenIcon Icon="phone" class="rz-mr-2" />
+                                                        @Reservation.Customer.Phone
+                                                    </RadzenText>
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City) || !string.IsNullOrWhiteSpace(Reservation.Customer.Country))
+                                        {
+                                            <RadzenColumn Size="12">
+                                                <RadzenStack Gap="0.5rem">
+                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                        Location
+                                                    </RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body1">
+                                                        <RadzenIcon Icon="location_on" class="rz-mr-2" />
+                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City))
+                                                        {
+                                                            @Reservation.Customer.City
+                                                        }
+                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City) && !string.IsNullOrWhiteSpace(Reservation.Customer.Country))
+                                                        {
+                                                            <text>, </text>
+                                                        }
+                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.Country))
+                                                        {
+                                                            @Reservation.Customer.Country
+                                                        }
+                                                    </RadzenText>
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+
+                                        @if (Reservation.Customer.DateOfBirth.HasValue)
+                                        {
+                                            <RadzenColumn Size="12">
+                                                <RadzenStack Gap="0.5rem">
+                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                        Date of Birth
+                                                    </RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body1">
+                                                        <RadzenIcon Icon="cake" class="rz-mr-2" />
+                                                        @Reservation.Customer.DateOfBirth.Value.ToString("dd MMMM yyyy")
+                                                    </RadzenText>
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.IdentityNumber))
+                                        {
+                                            <RadzenColumn Size="12">
+                                                <RadzenStack Gap="0.5rem">
+                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                        Identity Number
+                                                    </RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body1">
+                                                        <RadzenIcon Icon="badge" class="rz-mr-2" />
+                                                        @Reservation.Customer.IdentityNumber
+                                                    </RadzenText>
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenCard>
+                        }
+                    </RadzenStack>
+                </RadzenColumn>
+
+                <!-- Right Column - Room Info -->
+                <RadzenColumn Size="12" SizeMD="5">
+                    <RadzenCard>
+                        <RadzenStack Gap="1rem">
+                            <RadzenText TextStyle="TextStyle.H6">
+                                <RadzenIcon Icon="meeting_room" class="rz-mr-2" />
+                                Room Information
+                            </RadzenText>
+
+                            @if (Reservation.Room != null)
+                            {
+                                <RadzenRow Gap="1rem">
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Room Number
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.H5">
+                                                Room @Reservation.Room.RoomNumber
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Room Type
+                                            </RadzenText>
+                                            <RadzenBadge Text="@Reservation.Room.RoomType.ToString()" 
+                                                         BadgeStyle="@BadgeStyles.ForRoomType(Reservation.Room.RoomType)"
+                                                         Variant="Variant.Filled" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Room Status
+                                            </RadzenText>
+                                            <RadzenBadge Text="@Reservation.Room.Status.ToString()" 
+                                                         BadgeStyle="@BadgeStyles.ForRoomStatus(Reservation.Room.Status)"
+                                                         Variant="Variant.Filled" />
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Capacity
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1">
+                                                <RadzenIcon Icon="people" class="rz-mr-2" />
+                                                Up to @Reservation.Room.Capacity @(Reservation.Room.Capacity == 1 ? "person" : "people")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12">
+                                        <RadzenStack Gap="0.5rem">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
+                                                Base Price Per Night
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.H6" class="rz-color-info">
+                                                @Reservation.Room.BasePrice.ToString("C")
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+    </div>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
     private Reservation? Reservation;
+    private bool _loading = true;
 
     protected override async Task OnParametersSetAsync()
     {
-        Reservation = await _reservationService.GetByIdAsync(Id);
+        _loading = true;
 
-        if (Reservation is null)
-            return;
-
-        var state = await _authStateProvider.GetAuthenticationStateAsync();
-        var user = state.User;
-
-        var IsEmployee = user.IsInRole(AppRoles.Employee);
-        var UserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!IsEmployee && !string.IsNullOrWhiteSpace(UserId) && Reservation.CustomerId != UserId)
+        try
         {
-            _navigationManager.NavigateTo("/reservations");
-            Reservation = null;
-            return;
+            Reservation = await _reservationService.GetByIdAsync(Id);
+
+            if (Reservation is null)
+                return;
+
+            var state = await _authStateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+
+            var isEmployee = user.IsInRole(AppRoles.Employee);
+
+            if (!isEmployee)
+            {
+                var applicationUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!string.IsNullOrWhiteSpace(applicationUserId))
+                {
+                    var customer = await _customerService.GetCustomerByApplicationUserIdAsync(applicationUserId);
+
+                    if (customer == null || Reservation.CustomerId != customer.Id)
+                    {
+                        _navigationManager.NavigateTo("/reservations");
+                        Reservation = null;
+                        return;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 }

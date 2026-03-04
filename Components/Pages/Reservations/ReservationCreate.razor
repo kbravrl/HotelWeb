@@ -6,6 +6,7 @@
 @inject AuthenticationStateProvider _authStateProvider
 @inject IRoomService _roomService
 @inject IReservationService _reservationService
+@inject ICustomerService _customerService
 @inject NavigationManager _navigationManager
 
 <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 520px;">
@@ -73,7 +74,47 @@
                                       @bind-Value="_checkOut"
                                       DateFormat="dd/MM/yyyy" />
                 </RadzenColumn>
+
+                <RadzenColumn Size="12">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Number of Guests
+                    </RadzenText>
+
+                    <RadzenNumeric Style="width: 100%;"
+                                   @bind-Value="_guestCount"
+                                   Min="1"
+                                   Max="@(_room?.Capacity ?? 10)"
+                                   ShowUpDown="true" />
+
+                    @if (_room != null)
+                    {
+                        <RadzenText TextStyle="TextStyle.Caption" class="rz-color-on-primary-light rz-mt-1">
+                            Maximum capacity: @_room.Capacity
+                        </RadzenText>
+                    }
+                </RadzenColumn>
             </RadzenRow>
+
+            @if (_checkIn.HasValue && _checkOut.HasValue && _room != null)
+            {
+                var nights = (_checkOut.Value.Date - _checkIn.Value.Date).Days;
+                var totalPrice = nights * _room.BasePrice;
+
+                <RadzenStack Gap="0.5rem" class="rz-mt-4 rz-p-3" Style="background-color: rgba(255,255,255,0.1); border-radius: 4px;">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-on-primary-light">
+                        <strong>Pricing Summary</strong>
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                        <RadzenText TextStyle="TextStyle.Caption" class="rz-color-on-primary-light">
+                            @nights night(s) × @_room.BasePrice.ToString("C")
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light">
+                            <strong>@totalPrice.ToString("C")</strong>
+                        </RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            }
 
             <RadzenText TextStyle="TextStyle.Caption" class="rz-color-on-primary-light rz-mt-4">
                 Your reservation will be created as <b>Pending</b>.
@@ -105,6 +146,7 @@
 
     private DateTime? _checkIn = DateTime.Today.AddDays(1);
     private DateTime? _checkOut = DateTime.Today.AddDays(2);
+    private int _guestCount = 1;
 
     private bool _saving;
     private bool _loading = true;
@@ -116,7 +158,7 @@
 
          _room = await _roomService.GetRoomAsync(roomId.Value);
          _loading = false;
- 
+
     }
 
     private async Task CreateReservation()
@@ -136,22 +178,43 @@
 
         var state = await _authStateProvider.GetAuthenticationStateAsync();
         var user = state.User;
-        var customerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        var applicationUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrWhiteSpace(customerId))
+        if (string.IsNullOrWhiteSpace(applicationUserId))
             return;
+
+        // ApplicationUserId ile Customer kaydını bul
+        var customer = await _customerService.GetCustomerByApplicationUserIdAsync(applicationUserId);
+
+        if (customer == null)
+        {
+            // TODO: Kullanıcıya önce profil oluşturması gerektiğini göster
+            _navigationManager.NavigateTo("/");
+            return;
+        }
 
         _saving = true;
 
-        await _reservationService.CreateAsync(
-            roomId: _room.Id,
-            checkIn: DateOnly.FromDateTime(_checkIn.Value),
-            checkOut: DateOnly.FromDateTime(_checkOut.Value),
-            customerId: customerId
-        );
+        try
+        {
+            await _reservationService.CreateAsync(
+                roomId: _room.Id,
+                checkIn: DateOnly.FromDateTime(_checkIn.Value),
+                checkOut: DateOnly.FromDateTime(_checkOut.Value),
+                customerId: customer.Id,
+                guestCount: _guestCount
+            );
 
-        _navigationManager.NavigateTo("/reservations");
-        _saving = false;
-     
+            _navigationManager.NavigateTo("/reservations");
+        }
+        catch (Exception ex)
+        {
+            // TODO: Hata mesajını kullanıcıya göster
+            Console.WriteLine($"Error creating reservation: {ex.Message}");
+        }
+        finally
+        {
+            _saving = false;
+        }
     }
 }
