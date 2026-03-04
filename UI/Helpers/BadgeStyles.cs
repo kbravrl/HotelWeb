@@ -31,4 +31,12 @@ public static class BadgeStyles
         Enums.ReservationStatus.Cancelled => BadgeStyle.Danger,
         _ => BadgeStyle.Secondary
     };
+
+    public static BadgeStyle ForHousekeepingStatus(Enums.HousekeepingTaskStatus status) => status switch
+    {
+        Enums.HousekeepingTaskStatus.Pending => BadgeStyle.Warning,
+        Enums.HousekeepingTaskStatus.InProgress => BadgeStyle.Primary,
+        Enums.HousekeepingTaskStatus.Done => BadgeStyle.Success,
+        _ => BadgeStyle.Secondary
+    };
 }

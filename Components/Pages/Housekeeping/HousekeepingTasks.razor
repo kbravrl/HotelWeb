@@ -1,12 +1,18 @@
 @page "/housekeeping"
 
-@attribute [Authorize(Roles =AppRoles.Employee)]
+@attribute [Authorize(Roles = AppRoles.Employee)]
+
+@using HotelWeb.Components.Pages.Housekeeping
 
 @inject IHousekeepingTaskService _housekeepingTaskService
+@inject IEmployeeService _employeeService
 @inject NotificationService _notificationService
+@inject DialogService _dialogService
+
+<PageTitle>Housekeeping Tasks</PageTitle>
 
 <RadzenStack Gap="12px">
-    <RadzenText TextStyle="TextStyle.H4">Employee • Housekeeping</RadzenText>
+    <RadzenText TextStyle="TextStyle.H3">Housekeeping Tasks</RadzenText>
 
     <RadzenDataGrid TItem="HousekeepingTask"
                     Data="@_tasks"
@@ -16,56 +22,110 @@
                     AllowFiltering="true"
                     FilterMode="FilterMode.Simple"
                     Responsive="true"
-                    ColumnWidth="180px"
-                    EmptyText="No open housekeeping tasks.">
+                    EmptyText="No housekeeping tasks found.">
         <Columns>
-            <RadzenDataGridColumn TItem="HousekeepingTask" Property="Id" Title="Task" Width="90px" />
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="Id"
+                                  Title="ID"
+                                  Width="80px" />
 
-            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Room" Width="120px">
-                <Template>
-                    @{
-                        var t = context as HousekeepingTask;
-                        @t.RoomId
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="Room.RoomNumber"
+                                  Title="Room Number"
+                                  Width="130px">
+                <Template Context="task">
+                    @task.Room?.RoomNumber
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="Room.RoomType"
+                                  Title="Room Type"
+                                  Width="120px">
+                <Template Context="task">
+                    @if (task.Room != null)
+                    {
+                        <RadzenBadge Text="@task.Room.RoomType.ToString()"
+                                     BadgeStyle="@BadgeStyles.ForRoomType(task.Room.RoomType)"
+                                     Variant="Variant.Filled" />
                     }
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Status" Width="160px">
-                <Template>
-                    @{
-                        var t = context as HousekeepingTask;
-                        <RadzenBadge Text="@t.Status.ToString()" />
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Title="Assigned To"
+                                  Width="180px">
+                <Template Context="task">
+                    @if (task.AssignedToEmployee != null)
+                    {
+                        <span>@task.AssignedToEmployee.FirstName @task.AssignedToEmployee.LastName</span>
+                    }
+                    else
+                    {
+                        <span class="rz-text-secondary-color">Unassigned</span>
                     }
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="HousekeepingTask" Property="CreatedAt" Title="Created" />
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="Status"
+                                  Title="Status"
+                                  Width="130px">
+                <Template Context="task">
+                    <RadzenBadge Text="@task.Status.ToString()"
+                                 BadgeStyle="@BadgeStyles.ForHousekeepingStatus(task.Status)"
+                                 Variant="Variant.Filled" />
+                </Template>
+            </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="HousekeepingTask" Title="Actions" Width="220px" Sortable="false" Filterable="false">
-                <Template>
-                    @{
-                        var t = context as HousekeepingTask;
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
-                            @if (t.Status == HousekeepingTaskStatus.Pending)
-                            {
-                                <RadzenButton Text="Start"
-                                              ButtonStyle="ButtonStyle.Primary"
-                                              Size="ButtonSize.Small"
-                                              Click="@(() => Start(t.Id))" />
-                            }
-                            else if (t.Status == HousekeepingTaskStatus.InProgress)
-                            {
-                                <RadzenButton Text="Done"
-                                              ButtonStyle="ButtonStyle.Success"
-                                              Size="ButtonSize.Small"
-                                              Click="@(() => Done(t.Id))" />
-                            }
-                            else
-                            {
-                                <RadzenText TextStyle="TextStyle.Caption">Completed</RadzenText>
-                            }
-                        </RadzenStack>
-                    }
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="CreatedAt"
+                                  Title="Created"
+                                  Width="180px">
+                <Template Context="task">
+                    @task.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Property="CompletedAt"
+                                  Title="Completed"
+                                  Width="180px">
+                <Template Context="task">
+                    @(task.CompletedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="HousekeepingTask"
+                                  Title="Actions"
+                                  Width="200px"
+                                  Sortable="false"
+                                  Filterable="false">
+                <Template Context="task">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" AlignItems="AlignItems.Center">
+                        @if (task.Status == HousekeepingTaskStatus.Pending)
+                        {
+                            <RadzenButton Icon="play_arrow"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Size="ButtonSize.Small"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => Start(task.Id))"
+                                          title="Start Task" />
+                        }
+                        else if (task.Status == HousekeepingTaskStatus.InProgress)
+                        {
+                            <RadzenButton Icon="check_circle"
+                                          ButtonStyle="ButtonStyle.Success"
+                                          Size="ButtonSize.Small"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => Done(task.Id))"
+                                          title="Complete Task" />
+                        }
+                        else if (task.Status == HousekeepingTaskStatus.Done)
+                        {
+                            <RadzenIcon Icon="done_all" Style="color: var(--rz-success);" title="Completed" />
+                        }
+                    </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -74,10 +134,12 @@
 
 @code {
     private List<HousekeepingTask> _tasks = new();
+    private List<Employee> _employees = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
+        _employees = await _employeeService.GetAllEmployeesAsync();
     }
 
     private async Task LoadAsync()
