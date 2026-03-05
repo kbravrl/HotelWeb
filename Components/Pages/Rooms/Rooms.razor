@@ -1,49 +1,67 @@
 @page "/rooms"
 
+@rendermode InteractiveServer
 @inject AuthenticationStateProvider _authStateProvider
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
+@inject DialogService _dialogService
+
+<PageTitle>Rooms</PageTitle>
 
 <RadzenStack Gap="12px">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.H3">Rooms</RadzenText>
+
+        @if (isAdmin)
+        {
+            <RadzenButton Text="Add Room" 
+                          Icon="add" 
+                          ButtonStyle="ButtonStyle.Primary" 
+                          Click="@AddRoom" />
+        }
+    </RadzenStack>
+
     <RadzenDataGrid TItem="Room"
-                    Data="@Items"
+                    Data="@rooms"
                     AllowPaging="true"
                     PageSize="10"
                     AllowSorting="true"
                     AllowFiltering="true"
                     FilterMode="FilterMode.Simple"
                     Responsive="true"
-                    ColumnWidth="180px"
-                    EmptyText="No room found.">
+                    EmptyText="No rooms found.">
         <Columns>
+            <RadzenDataGridColumn TItem="Room"
+                                  Property="Id"
+                                  Title="ID"
+                                  Width="80px" />
 
             <RadzenDataGridColumn TItem="Room"
                                   Property="RoomNumber"
-                                  Title="Room No" 
-                                  Width="80px"/>
+                                  Title="Room No"
+                                  Width="100px" />
 
             <RadzenDataGridColumn TItem="Room"
                                   Property="RoomType"
                                   Title="Room Type"
                                   Width="120px">
-                <Template Context="r">
-                    <RadzenBadge Text="@r.RoomType.ToString()"
-                                 BadgeStyle="@BadgeStyles.ForRoomType(r.RoomType)" />
+                <Template Context="room">
+                    <RadzenBadge Text="@room.RoomType.ToString()"
+                                 BadgeStyle="@BadgeStyles.ForRoomType(room.RoomType)" />
                 </Template>
-
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="Room"
                                   Property="Capacity"
-                                  Title="Capacity" 
-                                  Width="120px" />
+                                  Title="Capacity"
+                                  Width="100px" />
 
             <RadzenDataGridColumn TItem="Room"
                                   Property="BasePrice"
                                   Title="Price/Night"
                                   Width="120px">
-                <Template Context="r">
-                    @($"{r.BasePrice:n0} ₺")
+                <Template Context="room">
+                    @($"{room.BasePrice:N2} ₺")
                 </Template>
             </RadzenDataGridColumn>
 
@@ -51,69 +69,124 @@
                                   Property="Status"
                                   Title="Status"
                                   Width="120px">
-                <Template Context="r">
-                    <RadzenBadge Text="@r.Status.ToString()"
-                                 BadgeStyle="@BadgeStyles.ForRoomStatus(r.Status)" />
+                <Template Context="room">
+                    <RadzenBadge Text="@room.Status.ToString()"
+                                 BadgeStyle="@BadgeStyles.ForRoomStatus(room.Status)" />
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="Room" Title="Actions" Width="260px" Sortable="false" Filterable="false">
-                <Template Context="r">
+            <RadzenDataGridColumn TItem="Room"
+                                  Title="Actions"
+                                  Width="@(isAdmin ? "200px" : "150px")"
+                                  Sortable="false"
+                                  Filterable="false">
+                <Template Context="room">
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
-                        @if (_isAuthenticated == false)
+                        @if (isAdmin)
                         {
-                            <RadzenButton Text="Reserve"
+                            <RadzenButton Icon="edit"
                                           Size="ButtonSize.Small"
                                           ButtonStyle="ButtonStyle.Light"
-                                          Click="@(() => RedirectToLoginForReservation(r.Id))" />
+                                          Variant="Variant.Flat"
+                                          Click="@(() => EditRoom(room.Id))" />
+
+                            <RadzenButton Icon="delete"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => DeleteRoom(room))" />
                         }
-                        else if (_isCustomer)
+                        else if (!isAuthenticated)
                         {
                             <RadzenButton Text="Reserve"
                                           Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Light"
-                                          Click="@(() => GoReservationCreate(r.Id))" />
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(() => RedirectToLoginForReservation(room.Id))" />
+                        }
+                        else if (isCustomer)
+                        {
+                            <RadzenButton Text="Reserve"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Disabled="@(room.Status != RoomStatus.Available)"
+                                          Click="@(() => GoReservationCreate(room.Id))" />
                         }
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-
         </Columns>
     </RadzenDataGrid>
-</RadzenStack >
+</RadzenStack>
 
 @code {
-
-    private IEnumerable<Room> Items { get; set; } = new List<Room>();
-    private bool _isAuthenticated;
-    private bool _isCustomer;
+    private List<Room> rooms = new();
+    private bool isAuthenticated;
+    private bool isCustomer;
+    private bool isAdmin;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserFlagsAsync();
-        await LoadRoomsAsync();
+        await LoadUserFlags();
+        await LoadRooms();
     }
 
-    private async Task LoadUserFlagsAsync()
+    private async Task LoadUserFlags()
     {
         var state = await _authStateProvider.GetAuthenticationStateAsync();
         var user = state.User;
 
-        _isAuthenticated = user.Identity?.IsAuthenticated == true;
-        _isCustomer = user.IsInRole(AppRoles.Customer);
+        isAuthenticated = user.Identity?.IsAuthenticated == true;
+        isCustomer = user.IsInRole(AppRoles.Customer);
+        isAdmin = user.IsInRole(AppRoles.Admin);
     }
 
-    private async Task LoadRoomsAsync()
+    private async Task LoadRooms()
     {
         var allRooms = await _roomService.GetAllAsync();
 
-        if (!_isAuthenticated || _isCustomer)
+        if (!isAuthenticated || isCustomer)
         {
-            Items = allRooms.Where(r => r.Status == RoomStatus.Available).ToList();
+            rooms = allRooms.Where(r => r.Status == RoomStatus.Available).ToList();
         }
         else
         {
-            Items = allRooms;
+            rooms = allRooms.ToList();
+        }
+    }
+
+    private void AddRoom()
+    {
+        _navigationManager.NavigateTo("/rooms/create");
+    }
+
+    private void EditRoom(int roomId)
+    {
+        _navigationManager.NavigateTo($"/rooms/edit/{roomId}");
+    }
+
+    private async Task DeleteRoom(Room room)
+    {
+        var confirmed = await _dialogService.Confirm(
+            $"Are you sure you want to delete Room {room.RoomNumber}?",
+            "Delete Room",
+            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" }
+        );
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await _roomService.DeleteAsync(room.Id);
+                await LoadRooms();
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _dialogService.Alert(
+                    ex.Message,
+                    "Cannot Delete Room",
+                    new AlertOptions { OkButtonText = "OK" }
+                );
+            }
         }
     }
 

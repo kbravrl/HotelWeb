@@ -1,0 +1,136 @@
+@page "/rooms/create"
+
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = AppRoles.Admin)]
+@inject IRoomService _roomService
+@inject DialogService _dialogService
+@inject NavigationManager _navigationManager
+
+<PageTitle>Create Room</PageTitle>
+
+<RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 600px;">
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="rz-p-4">
+        <RadzenStack Gap="0">
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-my-0">Room Management</RadzenText>
+            <RadzenText TextStyle="TextStyle.H5" class="rz-my-0"><b>Create New Room</b></RadzenText>
+        </RadzenStack>
+
+        <RadzenButton Variant="Variant.Text"
+                      class="rz-text-secondary-color"
+                      Text="Back"
+                      Icon="arrow_back"
+                      Click="@(() => _navigationManager.NavigateTo("/rooms"))" />
+    </RadzenStack>
+
+    <RadzenStack Gap="16px" class="rz-p-4">
+        <RadzenFormField Text="Room Number" Variant="Variant.Outlined">
+            <RadzenTextBox @bind-Value="room.RoomNumber" Style="width: 100%;" />
+        </RadzenFormField>
+
+        <RadzenFormField Text="Room Type" Variant="Variant.Outlined">
+            <RadzenDropDown @bind-Value="room.RoomType"
+                            Data="@roomTypes"
+                            Style="width: 100%;" />
+        </RadzenFormField>
+
+        <RadzenFormField Text="Capacity" Variant="Variant.Outlined">
+            <RadzenNumeric @bind-Value="room.Capacity"
+                           Min="1"
+                           Max="10"
+                           ShowUpDown="true"
+                           Style="width: 100%;" />
+        </RadzenFormField>
+
+        <RadzenFormField Text="Base Price (₺)" Variant="Variant.Outlined">
+            <RadzenNumeric @bind-Value="room.BasePrice"
+                           Min="0"
+                           TValue="decimal"
+                           Format="n2"
+                           ShowUpDown="false"
+                           Style="width: 100%;" />
+        </RadzenFormField>
+
+        <RadzenFormField Text="Status" Variant="Variant.Outlined">
+            <RadzenDropDown @bind-Value="room.Status"
+                            Data="@roomStatuses"
+                            Style="width: 100%;" />
+        </RadzenFormField>
+    </RadzenStack>
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.End"
+                 Gap="8px"
+                 class="rz-p-4">
+        <RadzenButton Variant="Variant.Text"
+                      class="rz-text-secondary-color"
+                      Text="Cancel"
+                      Disabled="@saving"
+                      Click="@(() => _navigationManager.NavigateTo("/rooms"))" />
+
+        <RadzenButton Text="@(saving ? "Creating..." : "Create Room")"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Disabled="@saving"
+                      Click="@CreateRoom" />
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    private Room room = new()
+    {
+        RoomType = RoomType.Single,
+        Status = RoomStatus.Available,
+        Capacity = 1,
+        BasePrice = 500
+    };
+
+    private bool saving;
+
+    private RoomType[] roomTypes = Enum.GetValues<RoomType>();
+    private RoomStatus[] roomStatuses = Enum.GetValues<RoomStatus>();
+
+    private async Task CreateRoom()
+    {
+        if (string.IsNullOrWhiteSpace(room.RoomNumber))
+        {
+            await _dialogService.Alert(
+                "Room number is required.",
+                "Validation Error",
+                new AlertOptions { OkButtonText = "OK" }
+            );
+            return;
+        }
+
+        if (room.BasePrice <= 0)
+        {
+            await _dialogService.Alert(
+                "Base price must be greater than 0.",
+                "Validation Error",
+                new AlertOptions { OkButtonText = "OK" }
+            );
+            return;
+        }
+
+        saving = true;
+
+        try
+        {
+            await _roomService.CreateAsync(room);
+            _navigationManager.NavigateTo("/rooms");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _dialogService.Alert(
+                ex.Message,
+                "Error",
+                new AlertOptions { OkButtonText = "OK" }
+            );
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}
