@@ -3,7 +3,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = AppRoles.Admin)]
 @inject IRoomService _roomService
-@inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navigationManager
 
 <PageTitle>Create Room</PageTitle>
@@ -95,21 +95,13 @@
     {
         if (string.IsNullOrWhiteSpace(room.RoomNumber))
         {
-            await _dialogService.Alert(
-                "Room number is required.",
-                "Validation Error",
-                new AlertOptions { OkButtonText = "OK" }
-            );
+            await _jsRuntime.ToastrError("Room number is required.");
             return;
         }
 
         if (room.BasePrice <= 0)
         {
-            await _dialogService.Alert(
-                "Base price must be greater than 0.",
-                "Validation Error",
-                new AlertOptions { OkButtonText = "OK" }
-            );
+            await _jsRuntime.ToastrError("Base price must be greater than 0.");
             return;
         }
 
@@ -118,15 +110,12 @@
         try
         {
             await _roomService.CreateAsync(room);
+            await _jsRuntime.ToastrSuccess($"Room {room.RoomNumber} created successfully!");
             _navigationManager.NavigateTo("/rooms");
         }
         catch (InvalidOperationException ex)
         {
-            await _dialogService.Alert(
-                ex.Message,
-                "Error",
-                new AlertOptions { OkButtonText = "OK" }
-            );
+            await _jsRuntime.ToastrError(ex.Message);
         }
         finally
         {

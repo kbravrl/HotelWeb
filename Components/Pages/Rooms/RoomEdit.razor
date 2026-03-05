@@ -4,6 +4,7 @@
 @attribute [Authorize(Roles = AppRoles.Admin)]
 
 @inject IRoomService _roomService
+@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navigationManager
 
 <PageTitle>Edit Room</PageTitle>
@@ -124,20 +125,31 @@
 
         if (string.IsNullOrWhiteSpace(room.RoomNumber))
         {
+            await _jsRuntime.ToastrError("Room number is required.");
             return;
         }
 
         if (room.BasePrice <= 0)
         {
+            await _jsRuntime.ToastrError("Base price must be greater than 0.");
             return;
         }
 
         saving = true;
 
-        await _roomService.UpdateAsync(room);
-        _navigationManager.NavigateTo("/rooms");
-
-        saving = false;
-
+        try
+        {
+            await _roomService.UpdateAsync(room);
+            await _jsRuntime.ToastrSuccess($"Room {room.RoomNumber} updated successfully!");
+            _navigationManager.NavigateTo("/rooms");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
+        finally
+        {
+            saving = false;
+        }
     }
 }

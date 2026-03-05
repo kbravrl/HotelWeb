@@ -4,9 +4,15 @@
 @inject AuthenticationStateProvider _authStateProvider
 @inject NavigationManager _navigationManager
 @inject IRoomService _roomService
-@inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
 
 <PageTitle>Rooms</PageTitle>
+
+<BootstrapModal Title="Delete Room"
+                Message="@confirmMessage"
+                ConfirmText="Delete"
+                CancelText="Cancel"
+                OnConfirm="ConfirmDelete" />
 
 <RadzenStack Gap="12px">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
@@ -123,6 +129,8 @@
     private bool isAuthenticated;
     private bool isCustomer;
     private bool isAdmin;
+    private Room? roomToDelete;
+    private string confirmMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,27 +174,29 @@
 
     private async Task DeleteRoom(Room room)
     {
-        var confirmed = await _dialogService.Confirm(
-            $"Are you sure you want to delete Room {room.RoomNumber}?",
-            "Delete Room",
-            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" }
-        );
+        roomToDelete = room;
+        confirmMessage = $"Are you sure you want to delete Room {room.RoomNumber}?";
+        await _jsRuntime.InvokeVoidAsync("ShowConfirmationModal");
+    }
 
-        if (confirmed == true)
+    private async Task ConfirmDelete()
+    {
+        if (roomToDelete == null) return;
+
+        try
         {
-            try
-            {
-                await _roomService.DeleteAsync(room.Id);
-                await LoadRooms();
-            }
-            catch (InvalidOperationException ex)
-            {
-                await _dialogService.Alert(
-                    ex.Message,
-                    "Cannot Delete Room",
-                    new AlertOptions { OkButtonText = "OK" }
-                );
-            }
+            await _jsRuntime.InvokeVoidAsync("HideConfirmationModal");
+            await _roomService.DeleteAsync(roomToDelete.Id);
+            await LoadRooms();
+            await _jsRuntime.ToastrSuccess($"Room {roomToDelete.RoomNumber} deleted successfully!");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _jsRuntime.ToastrError("Failed to delete room: " + ex.Message);
+        }
+        finally
+        {
+            roomToDelete = null;
         }
     }
 
