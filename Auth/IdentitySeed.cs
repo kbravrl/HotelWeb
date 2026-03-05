@@ -11,7 +11,7 @@ public static class IdentitySeed
         using var scope = services.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        var roles = new[] { AppRoles.Customer, AppRoles.Employee };
+        var roles = new[] { AppRoles.Admin, AppRoles.Customer, AppRoles.Employee };
 
         foreach (var role in roles)
         {
@@ -26,20 +26,47 @@ public static class IdentitySeed
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+        await CreateAdminUserAsync(userManager);
         await CreateTestCustomerAsync(userManager, dbContext);
         await CreateTestEmployeeAsync(userManager, dbContext);
     }
 
+    private static async Task CreateAdminUserAsync(UserManager<ApplicationUser> userManager)
+    {
+        var email = "admin@hotelweb.com";
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is not null)
+        {
+            Console.WriteLine($"Admin user already exists: {email}");
+            return;
+        }
+
+        Console.WriteLine($"Creating new admin user: {email}");
+        user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(user, "Test123!");
+        if (!result.Succeeded)
+            throw new Exception("Admin user create failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await userManager.AddToRoleAsync(user, AppRoles.Admin);
+        Console.WriteLine("Admin user created successfully!");
+    }
+
     private static async Task CreateTestCustomerAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
     {
-        var email = "customer@test.com";
+        var email = "customer@hotelweb.com";
         var user = await userManager.FindByEmailAsync(email);
 
         if (user is not null)
         {
             Console.WriteLine($"Customer user already exists: {email}");
 
-            // Kullanıcı var ama Customer kaydı var mı kontrol et
             var existingCustomer = dbContext.Customers.FirstOrDefault(c => c.ApplicationUserId == user.Id);
             if (existingCustomer is null)
             {
@@ -97,7 +124,7 @@ public static class IdentitySeed
 
     private static async Task CreateTestEmployeeAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
     {
-        var email = "employee@test.com";
+        var email = "employee@hotelweb.com";
         var user = await userManager.FindByEmailAsync(email);
 
         if (user is not null)
