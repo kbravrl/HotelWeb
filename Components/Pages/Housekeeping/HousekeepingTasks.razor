@@ -1,18 +1,26 @@
 @page "/housekeeping"
 
+@rendermode InteractiveServer
 @attribute [Authorize(Roles = AppRoles.Employee)]
 
 @using HotelWeb.Components.Pages.Housekeeping
 
 @inject IHousekeepingTaskService _housekeepingTaskService
 @inject IEmployeeService _employeeService
-@inject NotificationService _notificationService
+@inject IRoomService _roomService
 @inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
 
 <PageTitle>Housekeeping Tasks</PageTitle>
 
 <RadzenStack Gap="12px">
-    <RadzenText TextStyle="TextStyle.H3">Housekeeping Tasks</RadzenText>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.H3">Housekeeping Tasks</RadzenText>
+        <RadzenButton Text="Add Task" 
+                      Icon="add" 
+                      ButtonStyle="ButtonStyle.Primary" 
+                      Click="@AddTask" />
+    </RadzenStack>
 
     <RadzenDataGrid TItem="HousekeepingTask"
                     Data="@_tasks"
@@ -98,11 +106,18 @@
 
             <RadzenDataGridColumn TItem="HousekeepingTask"
                                   Title="Actions"
-                                  Width="200px"
+                                  Width="300px"
                                   Sortable="false"
                                   Filterable="false">
                 <Template Context="task">
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" AlignItems="AlignItems.Center">
+                        <RadzenButton Icon="edit"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Variant="Variant.Flat"
+                                      Click="@(() => EditTask(task))"
+                                      title="Edit Task" />
+
                         @if (task.Status == HousekeepingTaskStatus.Pending)
                         {
                             <RadzenButton Icon="play_arrow"
@@ -125,6 +140,13 @@
                         {
                             <RadzenIcon Icon="done_all" Style="color: var(--rz-success);" title="Completed" />
                         }
+
+                        <RadzenButton Icon="delete"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Size="ButtonSize.Small"
+                                      Variant="Variant.Flat"
+                                      Click="@(() => DeleteTask(task))"
+                                      title="Delete Task" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -133,8 +155,11 @@
 </RadzenStack>
 
 @code {
+    private enum TaskFilterMode { Open, All, Completed }
+
     private List<HousekeepingTask> _tasks = new();
     private List<Employee> _employees = new();
+    private TaskFilterMode _filterMode = TaskFilterMode.Open;
 
     protected override async Task OnInitializedAsync()
     {
@@ -144,7 +169,21 @@
 
     private async Task LoadAsync()
     {
-        _tasks = await _housekeepingTaskService.GetOpenTasksAsync();
+        var allTasks = await _housekeepingTaskService.GetAllTasksAsync();
+
+        _tasks = _filterMode switch
+        {
+            TaskFilterMode.Open => allTasks.Where(t => t.Status != HousekeepingTaskStatus.Done).ToList(),
+            TaskFilterMode.Completed => allTasks.Where(t => t.Status == HousekeepingTaskStatus.Done).ToList(),
+            TaskFilterMode.All => allTasks,
+            _ => allTasks
+        };
+    }
+
+    private async Task SetFilter(TaskFilterMode mode)
+    {
+        _filterMode = mode;
+        await LoadAsync();
     }
 
     private async Task Start(int id)
@@ -154,11 +193,11 @@
             await _housekeepingTaskService.StartAsync(id);
             await LoadAsync();
 
-            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Task #{id} started.");
+            await _jsRuntime.ToastrSuccess($"Task #{id} started.");
         }
         catch (Exception ex)
         {
-            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+            await _jsRuntime.ToastrError(ex.Message);
         }
     }
 
@@ -169,11 +208,95 @@
             await _housekeepingTaskService.CompleteAsync(id);
             await LoadAsync();
 
-            _notificationService.Notify(NotificationSeverity.Success, "Success", $"Task #{id} completed. Room set to Available.");
+            await _jsRuntime.ToastrSuccess($"Task #{id} completed. Room set to Available.");
         }
         catch (Exception ex)
         {
-            _notificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+            await _jsRuntime.ToastrError(ex.Message);
+        }
+    }
+
+    private async Task AddTask()
+    {
+        var newTask = new HousekeepingTask();
+
+        var result = await _dialogService.OpenAsync<TaskFormDialog>("Add Housekeeping Task",
+            new Dictionary<string, object>
+            {
+                { "Task", newTask },
+                { "IsEdit", false }
+            },
+            new DialogOptions { Width = "500px", Height = "auto" });
+
+        if (result is HousekeepingTask task)
+        {
+            try
+            {
+                await _housekeepingTaskService.CreateTaskAsync(task);
+                await LoadAsync();
+                await _jsRuntime.ToastrSuccess("Task created successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _jsRuntime.ToastrError(ex.Message);
+            }
+        }
+    }
+
+    private async Task EditTask(HousekeepingTask task)
+    {
+        var taskToEdit = new HousekeepingTask
+        {
+            Id = task.Id,
+            RoomId = task.RoomId,
+            AssignedToEmployeeId = task.AssignedToEmployeeId,
+            Status = task.Status,
+            CreatedAt = task.CreatedAt,
+            CompletedAt = task.CompletedAt
+        };
+
+        var result = await _dialogService.OpenAsync<TaskFormDialog>("Edit Housekeeping Task",
+            new Dictionary<string, object>
+            {
+                { "Task", taskToEdit },
+                { "IsEdit", true }
+            },
+            new DialogOptions { Width = "500px", Height = "auto" });
+
+        if (result is HousekeepingTask updatedTask)
+        {
+            try
+            {
+                await _housekeepingTaskService.UpdateTaskAsync(updatedTask);
+                await LoadAsync();
+                await _jsRuntime.ToastrSuccess("Task updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _jsRuntime.ToastrError(ex.Message);
+            }
+        }
+    }
+
+    private async Task DeleteTask(HousekeepingTask task)
+    {
+        var confirmed = await _dialogService.Confirm(
+            $"Are you sure you want to delete this task for Room {task.Room?.RoomNumber}?",
+            "Delete Task",
+            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await _housekeepingTaskService.DeleteTaskAsync(task.Id);
+                await LoadAsync();
+                await _jsRuntime.ToastrSuccess("Task deleted successfully. Room set to Available.");
+            }
+            catch (Exception ex)
+            {
+                await _jsRuntime.ToastrError(ex.Message);
+            }
         }
     }
 }

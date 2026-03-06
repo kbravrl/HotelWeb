@@ -1,0 +1,78 @@
+@using HotelWeb.Models
+@using HotelWeb.Enums
+
+@inject IRoomService _roomService
+@inject IEmployeeService _employeeService
+
+<RadzenStack Gap="16px">
+    <RadzenFormField Text="Room" Variant="Variant.Outlined">
+        <RadzenDropDown @bind-Value="@Task.RoomId"
+                        Data="@rooms"
+                        TextProperty="RoomNumber"
+                        ValueProperty="Id"
+                        Style="width: 100%;"
+                        Placeholder="Select Room" />
+    </RadzenFormField>
+
+    <RadzenFormField Text="Assign To Employee (Optional)" Variant="Variant.Outlined">
+        <RadzenDropDown @bind-Value="@Task.AssignedToEmployeeId"
+                        Data="@employees"
+                        TValue="int?"
+                        ValueProperty="Id"
+                        AllowClear="true"
+                        Style="width: 100%;"
+                        Placeholder="Select Employee (Optional)">
+            <Template Context="employee">
+                @employee.FirstName @employee.LastName
+            </Template>
+        </RadzenDropDown>
+    </RadzenFormField>
+
+    @if (IsEdit)
+    {
+        <RadzenFormField Text="Status" Variant="Variant.Outlined">
+            <RadzenDropDown @bind-Value="@Task.Status"
+                            Data="@taskStatuses"
+                            Style="width: 100%;" />
+        </RadzenFormField>
+    }
+</RadzenStack>
+
+<RadzenStack Orientation="Orientation.Horizontal"
+             JustifyContent="JustifyContent.End"
+             Gap="8px"
+             class="rz-mt-4">
+    <RadzenButton Text="Cancel"
+                  ButtonStyle="ButtonStyle.Light"
+                  Click="@(() => DialogService.Close(false))" />
+    <RadzenButton Text="@(IsEdit ? "Update" : "Create")"
+                  ButtonStyle="ButtonStyle.Primary"
+                  Click="@Submit" />
+</RadzenStack>
+
+@code {
+    [Parameter] public HousekeepingTask Task { get; set; } = new();
+    [Parameter] public bool IsEdit { get; set; }
+
+    [Inject] private DialogService DialogService { get; set; } = default!;
+
+    private List<Room> rooms = new();
+    private List<Employee> employees = new();
+    private HousekeepingTaskStatus[] taskStatuses = Enum.GetValues<HousekeepingTaskStatus>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = await _roomService.GetAllAsync();
+        employees = await _employeeService.GetActiveEmployeesAsync();
+    }
+
+    private void Submit()
+    {
+        if (Task.RoomId == 0)
+        {
+            return;
+        }
+
+        DialogService.Close(Task);
+    }
+}
