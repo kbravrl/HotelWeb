@@ -8,6 +8,7 @@ public interface IReservationService
     Task<Reservation?> GetByIdAsync(int id);
     Task<List<Reservation>> GetVisibleAsync(bool isEmployee, int? customerId);
     Task CreateAsync(int roomId, DateOnly checkIn, DateOnly checkOut, int customerId, int guestCount);
+    Task UpdateAsync(int reservationId, DateOnly checkIn, DateOnly checkOut, int guestCount);
 
     Task ConfirmAsync(int reservationId);
     Task CancelAsync(int reservationId);

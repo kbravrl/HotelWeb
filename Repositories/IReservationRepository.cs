@@ -9,6 +9,6 @@ public interface IReservationRepository
     Task<Reservation?> GetByIdWithRoomAsync(int id);
     Task<List<Reservation>> GetAllForCustomerAsync(int customerId);
     Task AddAsync(Reservation reservation); 
-    Task<bool> HasOverlapAsync(int roomId, DateOnly checkIn, DateOnly checkOut); 
+    Task<bool> HasOverlapAsync(int roomId, DateOnly checkIn, DateOnly checkOut, int? excludeReservationId = null); 
     Task SaveChangesAsync();
 }

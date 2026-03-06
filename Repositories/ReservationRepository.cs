@@ -37,11 +37,12 @@ public class ReservationRepository(ApplicationDbContext db) : IReservationReposi
     public async Task AddAsync(Reservation reservation)
         => await db.Reservations.AddAsync(reservation);
 
-    public Task<bool> HasOverlapAsync(int roomId, DateOnly checkIn, DateOnly checkOut)
+    public Task<bool> HasOverlapAsync(int roomId, DateOnly checkIn, DateOnly checkOut, int? excludeReservationId = null)
         => db.Reservations.AnyAsync(r =>
             r.RoomId == roomId
             && r.Status != ReservationStatus.Cancelled
             && r.Status != ReservationStatus.NoShow
+            && (excludeReservationId == null || r.Id != excludeReservationId)
             && checkIn < r.CheckOut
             && checkOut > r.CheckIn
         );

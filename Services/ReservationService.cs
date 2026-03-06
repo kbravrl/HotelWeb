@@ -46,7 +46,6 @@ public class ReservationService(
         if (hasOverlap)
             throw new InvalidOperationException("This room is not available for selected dates.");
 
-        // Toplam fiyatı hesapla (gece sayısı x oda fiyatı)
         var numberOfNights = checkOut.DayNumber - checkIn.DayNumber;
         var totalPrice = numberOfNights * room.BasePrice;
 
@@ -60,6 +59,43 @@ public class ReservationService(
             GuestCount = guestCount,
             TotalPrice = totalPrice
         });
+
+        await reservationRepo.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(int reservationId, DateOnly checkIn, DateOnly checkOut, int guestCount)
+    {
+        if (checkOut <= checkIn)
+            throw new InvalidOperationException("Check-out must be after check-in.");
+
+        if (guestCount <= 0)
+            throw new InvalidOperationException("Guest count must be at least 1.");
+
+        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+                  ?? throw new InvalidOperationException("Reservation not found.");
+
+        if (res.Status != ReservationStatus.Pending && res.Status != ReservationStatus.Confirmed)
+            throw new InvalidOperationException("Only Pending or Confirmed reservations can be updated.");
+
+        if (res.Room is null)
+            throw new InvalidOperationException("Room not loaded.");
+
+        if (guestCount > res.Room.Capacity)
+            throw new InvalidOperationException($"Guest count exceeds room capacity ({res.Room.Capacity}).");
+
+        if (res.CheckIn != checkIn || res.CheckOut != checkOut)
+        {
+            var hasOverlap = await reservationRepo.HasOverlapAsync(res.RoomId, checkIn, checkOut, excludeReservationId: reservationId);
+            if (hasOverlap)
+                throw new InvalidOperationException("This room is not available for selected dates.");
+        }
+
+        res.CheckIn = checkIn;
+        res.CheckOut = checkOut;
+        res.GuestCount = guestCount;
+
+        var numberOfNights = checkOut.DayNumber - checkIn.DayNumber;
+        res.TotalPrice = numberOfNights * res.Room.BasePrice;
 
         await reservationRepo.SaveChangesAsync();
     }
