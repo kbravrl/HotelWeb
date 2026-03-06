@@ -2,7 +2,6 @@
 
 @attribute [Authorize]
 
-@using System.Security.Claims
 @inject AuthenticationStateProvider _authStateProvider
 @inject IReservationService _reservationService
 @inject ICustomerService _customerService
@@ -63,7 +62,6 @@ else
                                      BadgeStyle="@BadgeStyles.ForReservationStatus(Reservation.Status)"
                                      Variant="Variant.Filled" 
                                      Style="font-size: 0.875rem; padding: 0.5rem 1rem;" />
-
                         <RadzenButton Text="Back"
                                       Icon="arrow_back"
                                       ButtonStyle="ButtonStyle.Light"
@@ -74,9 +72,7 @@ else
                 </RadzenStack>
             </RadzenCard>
 
-            <!-- Main Content Row -->
             <RadzenRow Gap="1rem">
-                <!-- Left Column - Reservation & Customer Info -->
                 <RadzenColumn Size="12" SizeMD="7">
                     <RadzenStack Gap="1rem">
                         <!-- Reservation Details Card -->
@@ -86,7 +82,6 @@ else
                                     <RadzenIcon Icon="event" class="rz-mr-2" />
                                     Reservation Information
                                 </RadzenText>
-
                                 <RadzenRow Gap="1rem">
                                     <RadzenColumn Size="12">
                                         <RadzenStack Gap="0.5rem">

@@ -2,12 +2,12 @@
 
 @attribute [Authorize(Roles = AppRoles.Customer)]
 
-@using System.Security.Claims
 @inject AuthenticationStateProvider _authStateProvider
 @inject IRoomService _roomService
 @inject IReservationService _reservationService
 @inject ICustomerService _customerService
 @inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
 
 <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 520px;">
     <RadzenStack Orientation="Orientation.Horizontal"
@@ -168,11 +168,25 @@
 
         if (!_checkIn.HasValue || !_checkOut.HasValue)
         {
+            await _jsRuntime.ToastrError("Please select check-in and check-out dates.");
             return;
         }
 
         if (_checkOut.Value.Date <= _checkIn.Value.Date)
         {
+            await _jsRuntime.ToastrError("Check-out date must be after check-in date.");
+            return;
+        }
+
+        if (_guestCount <= 0)
+        {
+            await _jsRuntime.ToastrError("Guest count must be at least 1.");
+            return;
+        }
+
+        if (_guestCount > _room.Capacity)
+        {
+            await _jsRuntime.ToastrError($"Guest count exceeds room capacity ({_room.Capacity}).");
             return;
         }
 
@@ -181,15 +195,16 @@
         var applicationUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrWhiteSpace(applicationUserId))
+        {
+            await _jsRuntime.ToastrError("User not authenticated.");
             return;
+        }
 
-        // ApplicationUserId ile Customer kaydını bul
         var customer = await _customerService.GetCustomerByApplicationUserIdAsync(applicationUserId);
 
         if (customer == null)
         {
-            // TODO: Kullanıcıya önce profil oluşturması gerektiğini göster
-            _navigationManager.NavigateTo("/");
+            await _jsRuntime.ToastrError("Please create your customer profile first.");
             return;
         }
 
@@ -205,12 +220,12 @@
                 guestCount: _guestCount
             );
 
+            await _jsRuntime.ToastrSuccess("Reservation created successfully!");
             _navigationManager.NavigateTo("/reservations");
         }
         catch (Exception ex)
         {
-            // TODO: Hata mesajını kullanıcıya göster
-            Console.WriteLine($"Error creating reservation: {ex.Message}");
+            await _jsRuntime.ToastrError(ex.Message);
         }
         finally
         {

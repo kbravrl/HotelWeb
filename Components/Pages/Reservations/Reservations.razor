@@ -2,11 +2,11 @@
 
 @attribute [Authorize]
 
-@using System.Security.Claims
 @inject AuthenticationStateProvider _authStateProvider
 @inject IReservationService _reservationService
 @inject ICustomerService _customerService
 @inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
 
 <PageTitle>Reservations</PageTitle>
 
@@ -117,6 +117,16 @@
                                       Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}"))"
                                       title="View Details" />
 
+                        @if (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)
+                        {
+                            <RadzenButton Icon="edit"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Size="ButtonSize.Small"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}/edit"))"
+                                          title="Edit" />
+                        }
+
                         <AuthorizeView Roles="@AppRoles.Employee">
                             @if (r.Status == ReservationStatus.Pending)
                             {
@@ -220,31 +230,71 @@
 
     private async Task Confirm(int id)
     {
-        await _reservationService.ConfirmAsync(id);
-        await LoadAsync();
+        try
+        {
+            await _reservationService.ConfirmAsync(id);
+            await LoadAsync();
+            await _jsRuntime.ToastrSuccess($"Reservation #{id} confirmed.");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
 
     private async Task Cancel(int id)
     {
-        await _reservationService.CancelAsync(id);
-        await LoadAsync();
+        try
+        {
+            await _reservationService.CancelAsync(id);
+            await LoadAsync();
+            await _jsRuntime.ToastrSuccess($"Reservation #{id} cancelled.");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
 
     private async Task NoShow(int id)
     {
-        await _reservationService.MarkNoShowAsync(id);
-        await LoadAsync();
+        try
+        {
+            await _reservationService.MarkNoShowAsync(id);
+            await LoadAsync();
+            await _jsRuntime.ToastrSuccess($"Reservation #{id} marked as no-show.");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
     private async Task CheckIn(int id)
     {
-        await _reservationService.CheckInAsync(id);
-        await LoadAsync();
+        try
+        {
+            await _reservationService.CheckInAsync(id);
+            await LoadAsync();
+            await _jsRuntime.ToastrSuccess($"Guest checked-in successfully.");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
 
     private async Task CheckOut(int id)
     {
-        await _reservationService.CheckOutAsync(id);
-        await LoadAsync();
+        try
+        {
+            await _reservationService.CheckOutAsync(id);
+            await LoadAsync();
+            await _jsRuntime.ToastrSuccess($"Guest checked-out successfully.");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
 
 }
