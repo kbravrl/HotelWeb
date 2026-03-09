@@ -11,7 +11,7 @@ public static class IdentitySeed
         using var scope = services.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        var roles = new[] { AppRoles.Admin, AppRoles.Customer, AppRoles.Employee };
+        var roles = new[] { AppRoles.Admin, AppRoles.Customer, AppRoles.Receptionist, AppRoles.Housekeeping };
 
         foreach (var role in roles)
         {
@@ -28,7 +28,6 @@ public static class IdentitySeed
 
         await CreateAdminUserAsync(userManager);
         await CreateTestCustomerAsync(userManager, dbContext);
-        await CreateTestEmployeeAsync(userManager, dbContext);
     }
 
     private static async Task CreateAdminUserAsync(UserManager<ApplicationUser> userManager)
@@ -120,48 +119,5 @@ public static class IdentitySeed
         dbContext.Customers.Add(newCustomer);
         await dbContext.SaveChangesAsync();
         Console.WriteLine("Customer user and record created successfully!");
-    }
-
-    private static async Task CreateTestEmployeeAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
-    {
-        var email = "employee@hotelweb.com";
-        var user = await userManager.FindByEmailAsync(email);
-
-        if (user is not null)
-            return;
-
-        user = new ApplicationUser
-        {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = true
-        };
-
-        var result = await userManager.CreateAsync(user, "Test123!");
-        if (!result.Succeeded)
-            throw new Exception("Employee user create failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-
-        await userManager.AddToRoleAsync(user, AppRoles.Employee);
-
-        var employee = new Employee
-        {
-            ApplicationUserId = user.Id,
-            FirstName = "Ayşe",
-            LastName = "Demir",
-            Email = email,
-            Phone = "+90 555 444 5566",
-            Address = "Kadıköy Mahallesi, No: 123",
-            City = "İstanbul",
-            Country = "Türkiye",
-            DateOfBirth = new DateOnly(1988, 3, 20),
-            Position = "Housekeeping Supervisor",
-            Department = "Housekeeping",
-            HireDate = new DateOnly(2020, 1, 15),
-            Salary = 25000,
-            IsActive = true
-        };
-
-        dbContext.Employees.Add(employee);
-        await dbContext.SaveChangesAsync();
     }
 }

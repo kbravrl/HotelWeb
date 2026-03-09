@@ -353,9 +353,9 @@ else
             var state = await _authStateProvider.GetAuthenticationStateAsync();
             var user = state.User;
 
-            var isEmployee = user.IsInRole(AppRoles.Employee);
+            var isReceptionistOrAdmin = user.IsInRole(AppRoles.Receptionist) || user.IsInRole(AppRoles.Admin);
 
-            if (!isEmployee)
+            if (!isReceptionistOrAdmin)
             {
                 var applicationUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 

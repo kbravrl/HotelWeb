@@ -127,7 +127,7 @@
                                           title="Edit" />
                         }
 
-                        <AuthorizeView Roles="@AppRoles.Employee">
+                        <AuthorizeView Roles="@($"{AppRoles.Admin},{AppRoles.Receptionist}")">
                             @if (r.Status == ReservationStatus.Pending)
                             {
                                 <RadzenButton Icon="check_circle"
@@ -205,7 +205,7 @@
         var state = await _authStateProvider.GetAuthenticationStateAsync();
         var user = state.User;
 
-        _isEmployee = user.IsInRole(AppRoles.Employee);
+        _isEmployee = user.IsInRole(AppRoles.Receptionist) || user.IsInRole(AppRoles.Admin);
 
         if (!_isEmployee)
         {
