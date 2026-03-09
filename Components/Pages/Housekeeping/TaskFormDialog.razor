@@ -63,7 +63,7 @@
     protected override async Task OnInitializedAsync()
     {
         rooms = await _roomService.GetAllAsync();
-        employees = await _employeeService.GetActiveEmployeesAsync();
+        employees = await _employeeService.GetCleanersAsync();
     }
 
     private void Submit()

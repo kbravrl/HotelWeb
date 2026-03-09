@@ -9,6 +9,7 @@ public interface IEmployeeRepository
     Task<Employee?> GetByIdAsync(int id);
     Task<Employee?> GetByEmailAsync(string email);
     Task<List<Employee>> GetActiveEmployeesAsync();
+    Task<List<Employee>> GetCleanersAsync();
     Task AddAsync(Employee employee);
     Task UpdateAsync(Employee employee);
     Task DeleteAsync(int id);

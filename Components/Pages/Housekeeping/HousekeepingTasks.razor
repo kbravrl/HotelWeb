@@ -158,13 +158,11 @@
     private enum TaskFilterMode { Open, All, Completed }
 
     private List<HousekeepingTask> _tasks = new();
-    private List<Employee> _employees = new();
     private TaskFilterMode _filterMode = TaskFilterMode.Open;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
-        _employees = await _employeeService.GetCleanersAsync();
     }
 
     private async Task LoadAsync()

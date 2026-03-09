@@ -1,4 +1,6 @@
+using HotelWeb.Auth;
 using HotelWeb.Data;
+using HotelWeb.Enums;
 using HotelWeb.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +38,16 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
             .OrderBy(e => e.FirstName)
             .ThenBy(e => e.LastName)
             .ToListAsync();
+
+    public async Task<List<Employee>> GetCleanersAsync()
+    {
+        return await db.Employees
+            .Where(e => e.Role == EmployeeRole.Housekeeping && e.IsActive)
+            .AsNoTracking()
+            .OrderBy(e => e.FirstName)
+            .ThenBy(e => e.LastName)
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Employee employee)
     {
