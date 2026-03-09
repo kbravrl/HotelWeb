@@ -1,17 +1,27 @@
 @page "/employees"
-@rendermode InteractiveServer
-@using HotelWeb.Models
-@using HotelWeb.Services
 
-@inject IEmployeeService EmployeeService
+@attribute [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Receptionist}")]
+@inject IEmployeeService _employeeService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+@inject DialogService _dialogService
 
 <PageTitle>Employees</PageTitle>
 
 <RadzenStack Gap="12px">
-    <RadzenText TextStyle="TextStyle.H3">Employees</RadzenText>
-    
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.H3">Employees</RadzenText>
+
+        <RadzenColumn Size="12">
+            <RadzenButton Icon="add"
+                          Text="New Employee"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@(() => _navigationManager.NavigateTo("/employees/create"))" />
+        </RadzenColumn>
+    </RadzenStack>
+
     <RadzenDataGrid TItem="Employee"
-                    Data="@employees"
+                    Data="@Items"
                     AllowPaging="true"
                     PageSize="10"
                     AllowSorting="true"
@@ -46,26 +56,16 @@
                                   Width="150px" />
 
             <RadzenDataGridColumn TItem="Employee"
-                                  Property="Position"
-                                  Title="Position"
-                                  Width="180px" />
-
-            <RadzenDataGridColumn TItem="Employee"
-                                  Property="Department"
-                                  Title="Department"
+                                  Property="Role"
+                                  Title="Role"
                                   Width="150px" />
-
-            <RadzenDataGridColumn TItem="Employee"
-                                  Property="City"
-                                  Title="City"
-                                  Width="120px" />
 
             <RadzenDataGridColumn TItem="Employee"
                                   Property="HireDate"
                                   Title="Hire Date"
-                                  Width="150px">
-                <Template Context="employee">
-                    @(employee.HireDate?.ToString("dd/MM/yyyy") ?? "-")
+                                  Width="130px">
+                <Template Context="e">
+                    @(e.HireDate?.ToString("dd/MM/yyyy") ?? "-")
                 </Template>
             </RadzenDataGridColumn>
 
@@ -73,8 +73,8 @@
                                   Property="Salary"
                                   Title="Salary"
                                   Width="120px">
-                <Template Context="employee">
-                    @(employee.Salary.HasValue ? $"{employee.Salary.Value:n0} ₺" : "-")
+                <Template Context="e">
+                    @(e.Salary.HasValue ? e.Salary.Value.ToString("C") : "-")
                 </Template>
             </RadzenDataGridColumn>
 
@@ -82,9 +82,9 @@
                                   Property="IsActive"
                                   Title="Status"
                                   Width="100px">
-                <Template Context="employee">
-                    <RadzenBadge Text="@(employee.IsActive ? "Active" : "Inactive")"
-                                 BadgeStyle="@(employee.IsActive ? BadgeStyle.Success : BadgeStyle.Danger)" />
+                <Template Context="e">
+                    <RadzenBadge Text="@(e.IsActive ? "Active" : "Inactive")"
+                                 BadgeStyle="@(e.IsActive ? BadgeStyle.Success : BadgeStyle.Danger)" />
                 </Template>
             </RadzenDataGridColumn>
 
@@ -93,8 +93,8 @@
                                   Width="100px"
                                   Sortable="false"
                                   Filterable="false">
-                <Template Context="employee">
-                    <RadzenBadge Text="@employee.AssignedTasks.Count.ToString()"
+                <Template Context="e">
+                    <RadzenBadge Text="@e.AssignedTasks.Count.ToString()"
                                  BadgeStyle="BadgeStyle.Info" />
                 </Template>
             </RadzenDataGridColumn>
@@ -102,9 +102,53 @@
             <RadzenDataGridColumn TItem="Employee"
                                   Property="CreatedAt"
                                   Title="Created"
-                                  Width="180px">
-                <Template Context="employee">
-                    @employee.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                  Width="150px">
+                <Template Context="e">
+                    @e.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Employee"
+                                  Title="Actions"
+                                  Width="220px"
+                                  Sortable="false"
+                                  Filterable="false">
+                <Template Context="e">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" AlignItems="AlignItems.Center">
+                        
+                        <RadzenButton Icon="edit"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Size="ButtonSize.Small"
+                                      Variant="Variant.Flat"
+                                      Click="@(() => _navigationManager.NavigateTo($"/employees/{e.Id}/edit"))"
+                                      title="Edit" />
+
+                        <RadzenButton Icon="delete"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Size="ButtonSize.Small"
+                                      Variant="Variant.Flat"
+                                      Click="@(() => Delete(e.Id))"
+                                      title="Delete" />
+
+                        @if (e.IsActive)
+                        {
+                            <RadzenButton Icon="block"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Size="ButtonSize.Small"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => ToggleStatus(e.Id, false))"
+                                          title="Deactivate" />
+                        }
+                        else
+                        {
+                            <RadzenButton Icon="check_circle"
+                                          ButtonStyle="ButtonStyle.Success"
+                                          Size="ButtonSize.Small"
+                                          Variant="Variant.Flat"
+                                          Click="@(() => ToggleStatus(e.Id, true))"
+                                          title="Activate" />
+                        }
+                    </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -112,15 +156,59 @@
 </RadzenStack>
 
 @code {
-    private List<Employee> employees = new();
+    private List<Employee> Items { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadEmployees();
+        await LoadAsync();
     }
 
-    private async Task LoadEmployees()
+    private async Task LoadAsync()
     {
-        employees = await EmployeeService.GetAllEmployeesWithTasksAsync();
+        Items = await _employeeService.GetAllEmployeesWithTasksAsync();
+    }
+
+    private async Task Delete(int id)
+    {
+        var employee = await _employeeService.GetEmployeeAsync(id);
+        if (employee == null) return;
+
+        var confirmed = await _dialogService.Confirm(
+            $"Are you sure you want to delete {employee.FirstName} {employee.LastName}?",
+            "Delete Employee",
+            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await _employeeService.DeleteEmployeeAsync(id);
+                await LoadAsync();
+                await _jsRuntime.ToastrSuccess("Employee deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _jsRuntime.ToastrError(ex.Message);
+            }
+        }
+    }
+
+    private async Task ToggleStatus(int id, bool isActive)
+    {
+        try
+        {
+            var employee = await _employeeService.GetEmployeeAsync(id);
+            if (employee != null)
+            {
+                employee.IsActive = isActive;
+                await _employeeService.UpdateEmployeeAsync(employee);
+                await LoadAsync();
+                await _jsRuntime.ToastrSuccess($"Employee {(isActive ? "activated" : "deactivated")} successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
     }
 }

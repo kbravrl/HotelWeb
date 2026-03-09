@@ -1,0 +1,257 @@
+@page "/employees/{id:int}/edit"
+
+@attribute [Authorize(Roles = $"{AppRoles.Admin}")]
+
+@inject IEmployeeService _employeeService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+
+@if (_loading)
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <div class="rz-p-12 rz-text-align-center">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary"
+                                       Mode="ProgressBarMode.Indeterminate" />
+            <RadzenText TextStyle="TextStyle.Body1" class="rz-mt-4">Loading employee...</RadzenText>
+        </div>
+    </RadzenCard>
+}
+else if (Model == null)
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <div class="rz-p-4">
+            <RadzenAlert Severity="AlertSeverity.Warning">
+                Employee not found.
+            </RadzenAlert>
+        </div>
+    </RadzenCard>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     AlignItems="AlignItems.Center"
+                     class="rz-p-4">
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-my-0">Employee</RadzenText>
+                <RadzenText TextStyle="TextStyle.H5" class="rz-my-0"><b>Edit @Model.FirstName @Model.LastName</b></RadzenText>
+            </RadzenStack>
+
+            <RadzenButton Variant="Variant.Text"
+                          class="rz-text-secondary-color"
+                          Text="Back"
+                          Icon="arrow_back"
+                          Click="@(() => _navigationManager.NavigateTo($"/employees"))" />
+        </RadzenStack>
+
+        <RadzenTemplateForm TItem="Employee" Data="@Model" Submit="@HandleSubmit">
+            <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8"
+                        style="margin: 0 calc(-1 * var(--rz-card-padding));">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light">
+                    <strong>Personal Information</strong>
+                </RadzenText>
+
+                <RadzenRow RowGap="0" class="rz-mt-2">
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            First Name *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.FirstName"
+                                       Name="FirstName"
+                                       MaxLength="100" />
+                        <RadzenRequiredValidator Component="FirstName" Text="Required" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Last Name *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.LastName"
+                                       Name="LastName"
+                                       MaxLength="100" />
+                        <RadzenRequiredValidator Component="LastName" Text="Required" />
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="12">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Email *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.Email"
+                                       Name="Email"
+                                       MaxLength="255" />
+                        <RadzenRequiredValidator Component="Email" Text="Required" />
+                        <RadzenEmailValidator Component="Email" Text="Invalid email" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Phone
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.Phone"
+                                       MaxLength="20" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Date of Birth
+                        </RadzenText>
+                        <RadzenDatePicker Style="width: 100%;"
+                                          @bind-Value="@Model.DateOfBirth"
+                                          DateFormat="dd/MM/yyyy"
+                                          ShowTime="false" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+
+            <RadzenCard class="rz-background-color-base-200 rz-shadow-0 rz-border-radius-0 rz-p-8 rz-mt-4"
+                        style="margin: 0 calc(-1 * var(--rz-card-padding));">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-text-secondary-color">
+                    <strong>Address Information</strong>
+                </RadzenText>
+
+                <RadzenRow RowGap="0" class="rz-mt-2">
+                    <RadzenColumn Size="12">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-text-secondary-color rz-display-flex rz-mt-4 rz-mb-0">
+                            Address
+                        </RadzenText>
+                        <RadzenTextArea Style="width: 100%;"
+                                        @bind-Value="@Model.Address"
+                                        Rows="3"
+                                        MaxLength="500" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-text-secondary-color rz-display-flex rz-mt-4 rz-mb-0">
+                            City
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.City"
+                                       MaxLength="100" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-text-secondary-color rz-display-flex rz-mt-4 rz-mb-0">
+                            Country
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="@Model.Country"
+                                       MaxLength="100" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+
+            <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8 rz-mt-4"
+                        style="margin: 0 calc(-1 * var(--rz-card-padding));">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light">
+                    <strong>Employment Information</strong>
+                </RadzenText>
+
+                <RadzenRow RowGap="0" class="rz-mt-2">
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Hire Date
+                        </RadzenText>
+                        <RadzenDatePicker Style="width: 100%;"
+                                          @bind-Value="@Model.HireDate"
+                                          DateFormat="dd/MM/yyyy"
+                                          ShowTime="false" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Salary
+                        </RadzenText>
+                        <RadzenNumeric Style="width: 100%;"
+                                       @bind-Value="@Model.Salary"
+                                       Min="0"
+                                       ShowUpDown="false"
+                                       Format="c" />
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="12">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center" class="rz-mt-4">
+                            <RadzenCheckBox @bind-Value="@Model.IsActive" Name="IsActive" />
+                            <RadzenLabel Text="Active Employee" Component="IsActive" class="rz-color-on-primary-light" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.End"
+                         Gap="0"
+                         class="rz-p-4">
+                <RadzenButton Variant="Variant.Text"
+                              class="rz-text-secondary-color"
+                              Text="Cancel"
+                              Disabled="@_saving"
+                              Click="@(() => _navigationManager.NavigateTo($"/employees"))" />
+
+                <RadzenButton Variant="Variant.Text"
+                              ButtonType="ButtonType.Submit"
+                              Text="@(_saving ? "Saving..." : "Save Changes")"
+                              Disabled="@_saving" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Employee? Model { get; set; }
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        Model = await _employeeService.GetEmployeeAsync(Id);
+        _loading = false;
+
+        if (Model == null)
+        {
+            await _jsRuntime.ToastrError("Employee not found.");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _saving = true;
+
+        try
+        {
+            await _employeeService.UpdateEmployeeAsync(Model!);
+            await _jsRuntime.ToastrSuccess("Employee updated successfully.");
+            _navigationManager.NavigateTo($"/employees");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
