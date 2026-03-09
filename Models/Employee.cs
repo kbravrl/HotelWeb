@@ -1,11 +1,12 @@
 using HotelWeb.Data;
+using HotelWeb.Enums;
 
 namespace HotelWeb.Models;
 
 public class Employee
 {
     public int Id { get; set; }
-    public string ApplicationUserId { get; set; } = default!;
+    public string? ApplicationUserId { get; set; } = default!;
     public ApplicationUser? ApplicationUser { get; set; }
 
     public string FirstName { get; set; } = default!;
@@ -15,8 +16,7 @@ public class Employee
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
-    public string? Position { get; set; }
-    public string? Department { get; set; }
+    public EmployeeRole Role { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public DateOnly? HireDate { get; set; }
     public decimal? Salary { get; set; }

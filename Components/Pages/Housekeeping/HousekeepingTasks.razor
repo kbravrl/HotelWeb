@@ -164,7 +164,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
-        _employees = await _employeeService.GetAllEmployeesAsync();
+        _employees = await _employeeService.GetCleanersAsync();
     }
 
     private async Task LoadAsync()
