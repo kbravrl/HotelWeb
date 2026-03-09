@@ -17,6 +17,12 @@ namespace HotelWeb.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<HousekeepingTask>()
+                .HasOne(t => t.AssignedToEmployee)
+                .WithMany(e => e.AssignedTasks)
+                .HasForeignKey(t => t.AssignedToEmployeeId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.Entity<Room>().HasData(
                 new Room { Id = 1, RoomNumber = "101", RoomType = RoomType.Single, Capacity = 1, BasePrice = 2200, Status = RoomStatus.Available },
                 new Room { Id = 2, RoomNumber = "102", RoomType = RoomType.Single, Capacity = 1, BasePrice = 2300, Status = RoomStatus.Available },

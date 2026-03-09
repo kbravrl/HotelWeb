@@ -21,6 +21,8 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
 
     public async Task<Employee?> GetByIdAsync(int id)
         => await db.Employees
+            .Include(e => e.AssignedTasks)
+                .ThenInclude(t => t.Room)
             .FirstOrDefaultAsync(e => e.Id == id);
 
     public async Task<Employee?> GetByEmailAsync(string email)
@@ -43,8 +45,15 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
 
     public async Task UpdateAsync(Employee employee)
     {
-        db.Employees.Update(employee);
-        await SaveChangesAsync();
+        var existingEmployee = await db.Employees
+            .Include(e => e.AssignedTasks)
+            .FirstOrDefaultAsync(e => e.Id == employee.Id);
+
+        if (existingEmployee != null)
+        {
+            db.Entry(existingEmployee).CurrentValues.SetValues(employee);
+            await SaveChangesAsync();
+        }
     }
 
     public async Task DeleteAsync(int id)

@@ -45,6 +45,7 @@ public class HousekeepingTaskService(
         if (task.CompletedAt.HasValue)
             existingTask.CompletedAt = task.CompletedAt;
 
+        taskRepo.Update(existingTask);
         await taskRepo.SaveChangesAsync();
     }
 
@@ -85,6 +86,7 @@ public class HousekeepingTaskService(
 
         task.Status = HousekeepingTaskStatus.Done;
         task.CompletedAt = DateTime.UtcNow;
+        task.AssignedToEmployee = null;
 
         var room = await roomRepo.GetByIdAsync(task.RoomId)
                    ?? throw new InvalidOperationException("Room not found.");
