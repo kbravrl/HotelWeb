@@ -6,7 +6,7 @@ public interface IHousekeepingTaskService
 {
     Task<List<HousekeepingTask>> GetAllTasksAsync();
     Task<List<HousekeepingTask>> GetOpenTasksAsync();
-    Task<HousekeepingTask?> GetTaskByIdAsync(int id);
+    Task<HousekeepingTask?> GetByIdAsync(int id);
     Task CreateTaskAsync(HousekeepingTask task);
     Task UpdateTaskAsync(HousekeepingTask task);
     Task DeleteTaskAsync(int id);

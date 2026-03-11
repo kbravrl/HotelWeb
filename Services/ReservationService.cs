@@ -71,7 +71,7 @@ public class ReservationService(
         if (guestCount <= 0)
             throw new InvalidOperationException("Guest count must be at least 1.");
 
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status != ReservationStatus.Pending && res.Status != ReservationStatus.Confirmed)
@@ -102,7 +102,7 @@ public class ReservationService(
 
     public async Task ConfirmAsync(int reservationId)
     {
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status != ReservationStatus.Pending)
@@ -121,7 +121,7 @@ public class ReservationService(
 
     public async Task CancelAsync(int reservationId)
     {
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status == ReservationStatus.CheckedIn || res.Status == ReservationStatus.CheckedOut)
@@ -138,7 +138,7 @@ public class ReservationService(
 
     public async Task MarkNoShowAsync(int reservationId)
     {
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status != ReservationStatus.Confirmed)
@@ -151,7 +151,7 @@ public class ReservationService(
 
     public async Task CheckInAsync(int reservationId)
     {
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status != ReservationStatus.Confirmed)
@@ -171,7 +171,7 @@ public class ReservationService(
 
     public async Task CheckOutAsync(int reservationId)
     {
-        var res = await reservationRepo.GetByIdWithRoomAsync(reservationId)
+        var res = await reservationRepo.GetByIdAsync(reservationId)
                   ?? throw new InvalidOperationException("Reservation not found.");
 
         if (res.Status != ReservationStatus.CheckedIn)

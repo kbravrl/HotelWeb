@@ -8,34 +8,14 @@ public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
 {
     public async Task<List<Customer>> GetAllAsync()
         => await db.Customers
-            .AsNoTracking()
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
-
-    public async Task<List<Customer>> GetAllWithReservationsAsync()
-        => await db.Customers
             .Include(c => c.Reservations)
             .AsNoTracking()
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
 
-    public async Task<List<(Customer Customer, int ReservationCount)>> GetAllWithReservationCountAsync()
-        => await db.Customers
-            .AsNoTracking()
-            .OrderByDescending(c => c.CreatedAt)
-            .Select(c => new ValueTuple<Customer, int>(
-                c,
-                c.Reservations.Count
-            ))
-            .ToListAsync();
-
     public async Task<Customer?> GetByIdAsync(int id)
         => await db.Customers
             .FirstOrDefaultAsync(c => c.Id == id);
-
-    public async Task<Customer?> GetByEmailAsync(string email)
-        => await db.Customers
-            .FirstOrDefaultAsync(c => c.Email == email);
 
     public async Task AddAsync(Customer customer)
     {

@@ -10,17 +10,8 @@ public class EmployeeService(IEmployeeRepository repo, UserManager<ApplicationUs
     public Task<List<Employee>> GetAllEmployeesAsync()
         => repo.GetAllAsync();
 
-    public Task<List<Employee>> GetAllEmployeesWithTasksAsync()
-        => repo.GetAllWithTasksAsync();
-
     public Task<Employee?> GetEmployeeAsync(int id)
         => repo.GetByIdAsync(id);
-
-    public Task<Employee?> GetEmployeeByEmailAsync(string email)
-        => repo.GetByEmailAsync(email);
-
-    public Task<List<Employee>> GetActiveEmployeesAsync()
-        => repo.GetActiveEmployeesAsync();
 
     public Task<List<Employee>> GetCleanersAsync()
         => repo.GetCleanersAsync();

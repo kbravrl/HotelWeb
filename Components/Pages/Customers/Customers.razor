@@ -102,6 +102,6 @@
 
     private async Task LoadCustomers()
     {
-        customers = await CustomerService.GetAllCustomersWithReservationsAsync();
+        customers = await CustomerService.GetAllCustomersAsync();
     }
 }

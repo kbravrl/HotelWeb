@@ -14,8 +14,7 @@ public class HousekeepingTaskService(
 
     public Task<List<HousekeepingTask>> GetOpenTasksAsync()
         => taskRepo.GetOpenTasksAsync();
-
-    public Task<HousekeepingTask?> GetTaskByIdAsync(int id)
+    public Task<HousekeepingTask?> GetByIdAsync(int id)
         => taskRepo.GetByIdAsync(id);
 
     public async Task CreateTaskAsync(HousekeepingTask task)

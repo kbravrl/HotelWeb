@@ -165,7 +165,7 @@
 
     private async Task LoadAsync()
     {
-        Items = await _employeeService.GetAllEmployeesWithTasksAsync();
+        Items = await _employeeService.GetAllEmployeesAsync();
     }
 
     private async Task Delete(int id)

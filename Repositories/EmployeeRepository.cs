@@ -10,12 +10,6 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
 {
     public async Task<List<Employee>> GetAllAsync()
         => await db.Employees
-            .AsNoTracking()
-            .OrderByDescending(e => e.CreatedAt)
-            .ToListAsync();
-
-    public async Task<List<Employee>> GetAllWithTasksAsync()
-        => await db.Employees
             .Include(e => e.AssignedTasks)
             .AsNoTracking()
             .OrderByDescending(e => e.CreatedAt)
@@ -27,17 +21,6 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
                 .ThenInclude(t => t.Room)
             .FirstOrDefaultAsync(e => e.Id == id);
 
-    public async Task<Employee?> GetByEmailAsync(string email)
-        => await db.Employees
-            .FirstOrDefaultAsync(e => e.Email == email);
-
-    public async Task<List<Employee>> GetActiveEmployeesAsync()
-        => await db.Employees
-            .Where(e => e.IsActive)
-            .AsNoTracking()
-            .OrderBy(e => e.FirstName)
-            .ThenBy(e => e.LastName)
-            .ToListAsync();
 
     public async Task<List<Employee>> GetCleanersAsync()
     {
