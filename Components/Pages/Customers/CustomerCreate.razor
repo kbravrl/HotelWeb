@@ -1,0 +1,211 @@
+﻿@page "/customers/create"
+
+@attribute [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Receptionist}")]
+@rendermode InteractiveServer
+
+@using HotelWeb.Auth
+@using HotelWeb.Models
+@inject ICustomerService _customerService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+
+<PageTitle>Create Customer</PageTitle>
+
+<RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 AlignItems="AlignItems.Center"
+                 class="rz-p-4">
+        <RadzenStack Gap="0">
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-my-0">Customer</RadzenText>
+            <RadzenText TextStyle="TextStyle.H5" class="rz-my-0">
+                <b>Create New Customer</b>
+            </RadzenText>
+        </RadzenStack>
+
+        <RadzenButton Variant="Variant.Text"
+                      class="rz-text-secondary-color"
+                      Text="Back"
+                      Icon="arrow_back"
+                      Click="@(()=> _navigationManager.NavigateTo("/customers"))" />
+    </RadzenStack>
+
+    <RadzenTemplateForm TItem="Customer" Data="@Customer" Submit="@HandleSubmit">
+        <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8"
+                    style="margin: 0 calc(-1 * var(--rz-card-padding));">
+            <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light">
+                <strong>Personal Information</strong>
+            </RadzenText>
+
+            <RadzenRow RowGap="0" class="rz-mt-2">
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        First Name *
+                    </RadzenText>
+                    <RadzenTextBox Style="width: 100%;"
+                                   @bind-Value="Customer.FirstName"
+                                   Name="FirstName"
+                                   MaxLength="100" />
+                    <RadzenRequiredValidator Component="FirstName" Text="Required" />
+                </RadzenColumn>
+
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Last Name *
+                    </RadzenText>
+                    <RadzenTextBox Style="width: 100%;"
+                                   @bind-Value="Customer.LastName"
+                                   Name="LastName"
+                                   MaxLength="100" />
+                    <RadzenRequiredValidator Component="LastName" Text="Required" />
+                </RadzenColumn>
+
+                <RadzenColumn Size="12">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Email *
+                    </RadzenText>
+                    <RadzenTextBox Style="width: 100%;"
+                                   @bind-Value="Customer.Email"
+                                   Name="Email"
+                                   MaxLength="255" />
+                    <RadzenRequiredValidator Component="Email" Text="Required" />
+                    <RadzenEmailValidator Component="Email" Text="Invalid email" />
+                </RadzenColumn>
+
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Phone
+                    </RadzenText>
+                    <RadzenTextBox Style="width: 100%;"
+                                   @bind-Value="Customer.Phone"
+                                   Name="Phone""
+                                   MaxLength="20" />
+                    <RadzenRequiredValidator Component="Phone" Text="Required" />
+                </RadzenColumn>
+
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Date of Birth
+                    </RadzenText>
+                    <RadzenDatePicker Style="width: 100%;"
+                                      TValue="DateTime?"
+                                      Value="@DateOfBirthValue"
+                                      ValueChanged="@OnDateChanged"
+                                      DateFormat="dd/MM/yyyy"
+                                      ShowTime="false" />
+                </RadzenColumn>
+
+                <RadzenColumn Size="12">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                        Identity Number *
+                    </RadzenText>
+                    <RadzenTextBox Style="width: 100%;"
+                                   @bind-Value="Customer.IdentityNumber"
+                                   Name="IdentityNumber"
+                                   MaxLength="50" />
+                    <RadzenRequiredValidator Component="IdentityNumber" Text="Required" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+
+        <RadzenCard class="rz-background-color-base-200 rz-shadow-0 rz-border-radius-0 rz-p-8 rz-mt-4"
+                    style="margin: 0 calc(-1 * var(--rz-card-padding));">
+            <RadzenText TextStyle="TextStyle.H6" class="rz-text-secondary-color">
+                <strong>System Access</strong>
+            </RadzenText>
+
+            <RadzenRow RowGap="0" class="rz-mt-2">
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-text-secondary-color rz-display-flex rz-mt-4 rz-mb-0">
+                        Password *
+                    </RadzenText>
+                    <RadzenPassword Style="width: 100%;"
+                                    @bind-Value="Password"
+                                    Name="Password" />
+                    <RadzenRequiredValidator Component="Password" Text="Required" />
+                </RadzenColumn>
+
+                <RadzenColumn SizeSM="6">
+                    <RadzenText TextStyle="TextStyle.Overline"
+                                class="rz-text-secondary-color rz-display-flex rz-mt-4 rz-mb-0">
+                        Confirm Password *
+                    </RadzenText>
+                    <RadzenPassword Style="width: 100%;"
+                                    @bind-Value="ConfirmPassword"
+                                    Name="ConfirmPassword" />
+                    <RadzenRequiredValidator Component="ConfirmPassword" Text="Required" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.End"
+                     Gap="0"
+                     class="rz-p-4">
+            <RadzenButton Variant="Variant.Text"
+                          class="rz-text-secondary-color"
+                          Text="Cancel"
+                          Disabled="@IsSaving"
+                          Click="@(() => _navigationManager.NavigateTo("/customers"))" />
+
+            <RadzenButton Variant="Variant.Text"
+                          ButtonType="ButtonType.Submit"
+                          Text="@(IsSaving ? "Creating..." : "Create Customer")"
+                          Disabled="@IsSaving" />
+        </RadzenStack>
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code {
+    private Customer Customer { get; set; } = new();
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private bool IsSaving;
+
+    private DateTime? DateOfBirthValue
+    {
+        get => Customer.DateOfBirth.HasValue
+            ? Customer.DateOfBirth.Value.ToDateTime(TimeOnly.MinValue)
+            : null;
+    }
+
+    private void OnDateChanged(DateTime? value)
+    {
+        Customer.DateOfBirth = value.HasValue
+            ? DateOnly.FromDateTime(value.Value)
+            : null;
+    }
+
+    private async Task HandleSubmit()
+    {
+        IsSaving = true;
+
+        try
+        {
+            if (Password != ConfirmPassword)
+            {
+                await _jsRuntime.ToastrError("Passwords do not match.");
+                return;
+            }
+
+            await _customerService.CreateCustomerAsync(Customer, Password);
+            await _jsRuntime.ToastrSuccess("Customer created successfully.");
+            _navigationManager.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.ToString());
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+}

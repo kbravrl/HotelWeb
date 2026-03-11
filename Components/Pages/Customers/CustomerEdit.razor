@@ -1,0 +1,224 @@
+﻿@page "/customers/edit/{Id:int}"
+
+@attribute [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Receptionist}")]
+@rendermode InteractiveServer
+
+@using HotelWeb.Auth
+@using HotelWeb.Models
+@inject ICustomerService _customerService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+
+<PageTitle>Edit Customer</PageTitle>
+
+@if (IsLoading)
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <div class="rz-p-12 rz-text-align-center">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary"
+                                       Mode="ProgressBarMode.Indeterminate" />
+            <RadzenText TextStyle="TextStyle.Body1" class="rz-mt-4">
+                Loading customer...
+            </RadzenText>
+        </div>
+    </RadzenCard>
+}
+else if (Customer == null)
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <div class="rz-p-4">
+            <RadzenAlert Severity="AlertSeverity.Warning">
+                Customer not found.
+            </RadzenAlert>
+        </div>
+    </RadzenCard>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 800px;">
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     AlignItems="AlignItems.Center"
+                     class="rz-p-4">
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-my-0">Customer</RadzenText>
+                <RadzenText TextStyle="TextStyle.H5" class="rz-my-0">
+                    <b>Edit @Customer.FirstName @Customer.LastName</b>
+                </RadzenText>
+            </RadzenStack>
+
+            <RadzenButton Variant="Variant.Text"
+                          class="rz-text-secondary-color"
+                          Text="Back"
+                          Icon="arrow_back"
+                          Click="@(()=> _navigationManager.NavigateTo("/customers"))" />
+        </RadzenStack>
+
+        <RadzenTemplateForm TItem="Customer" Data="@Customer" Submit="@HandleSubmit">
+            <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8"
+                        style="margin: 0 calc(-1 * var(--rz-card-padding));">
+                <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light">
+                    <strong>Personal Information</strong>
+                </RadzenText>
+
+                <RadzenRow RowGap="0" class="rz-mt-2">
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            First Name *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="Customer.FirstName"
+                                       Name="FirstName"
+                                       MaxLength="100" />
+                        <RadzenRequiredValidator Component="FirstName" Text="Required" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Last Name *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="Customer.LastName"
+                                       Name="LastName"
+                                       MaxLength="100" />
+                        <RadzenRequiredValidator Component="LastName" Text="Required" />
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="12">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Email *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="Customer.Email"
+                                       Name="Email"
+                                       MaxLength="255" />
+                        <RadzenRequiredValidator Component="Email" Text="Required" />
+                        <RadzenEmailValidator Component="Email" Text="Invalid email" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Phone
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="Customer.Phone"
+                                       MaxLength="20" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Date of Birth
+                        </RadzenText>
+                        <RadzenDatePicker Style="width: 100%;"
+                                          TValue="DateTime?"
+                                          Value="@DateOfBirthValue"
+                                          ValueChanged="@OnDateChanged"
+                                          DateFormat="dd/MM/yyyy"
+                                          ShowTime="false" />
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="12">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
+                            Identity Number *
+                        </RadzenText>
+                        <RadzenTextBox Style="width: 100%;"
+                                       @bind-Value="Customer.IdentityNumber"
+                                       Name="IdentityNumber"
+                                       MaxLength="50" />
+                        <RadzenRequiredValidator Component="IdentityNumber" Text="Required" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         JustifyContent="JustifyContent.End"
+                         Gap="0"
+                         class="rz-p-4">
+                <RadzenButton Variant="Variant.Text"
+                              class="rz-text-secondary-color"
+                              Text="Cancel"
+                              Disabled="@IsSaving"
+                              Click="@(()=> _navigationManager.NavigateTo("/customers"))" />
+
+                <RadzenButton Variant="Variant.Text"
+                              ButtonType="ButtonType.Submit"
+                              Text="@(IsSaving ? "Saving..." : "Save Changes")"
+                              Disabled="@IsSaving" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Customer? Customer { get; set; }
+    private bool IsLoading = true;
+    private bool IsSaving;
+
+    private DateTime? DateOfBirthValue
+    {
+        get => Customer?.DateOfBirth.HasValue == true
+            ? Customer.DateOfBirth.Value.ToDateTime(TimeOnly.MinValue)
+            : null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Customer = await _customerService.GetCustomerAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void OnDateChanged(DateTime? value)
+    {
+        if (Customer == null)
+        {
+            return;
+        }
+
+        Customer.DateOfBirth = value.HasValue
+            ? DateOnly.FromDateTime(value.Value)
+            : null;
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (Customer == null)
+        {
+            return;
+        }
+
+        IsSaving = true;
+
+        try
+        {
+            await _customerService.UpdateCustomerAsync(Customer);
+            await _jsRuntime.ToastrSuccess("Customer updated successfully.");
+            _navigationManager.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            await _jsRuntime.ToastrError(ex.Message);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+}

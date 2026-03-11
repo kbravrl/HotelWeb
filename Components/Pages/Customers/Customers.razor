@@ -1,91 +1,76 @@
 @page "/customers"
+
+@attribute [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Receptionist}")]
 @rendermode InteractiveServer
-@using HotelWeb.Models
-@using HotelWeb.Services
 
-@inject ICustomerService CustomerService
-
-<PageTitle>Customers</PageTitle>
+@inject ICustomerService _customerService
+@inject NavigationManager _navigationManager
+@inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
 
 <RadzenStack Gap="12px">
-    <RadzenText TextStyle="TextStyle.H3">Customers</RadzenText>
-    
+    <RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.H3">Customers</RadzenText>
+
+        <RadzenButton Icon="add"
+                      Text="New Customer"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@(()=> _navigationManager.NavigateTo("/customers/create"))" />
+                      
+    </RadzenRow>
+
     <RadzenDataGrid TItem="Customer"
-                    Data="@customers"
+                    Data="@Items"
                     AllowPaging="true"
                     PageSize="10"
                     AllowSorting="true"
                     AllowFiltering="true"
                     FilterMode="FilterMode.Simple"
                     Responsive="true"
-                    EmptyText="No customers found.">
+                    EmptyText="No Items found.">
         <Columns>
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="Id"
-                                  Title="ID"
-                                  Width="80px" />
+            <RadzenDataGridColumn TItem="Customer" Property="Id" Title="ID" Width="80px" />
+            <RadzenDataGridColumn TItem="Customer" Property="FirstName" Title="First Name" Width="150px" />
+            <RadzenDataGridColumn TItem="Customer" Property="LastName" Title="Last Name" Width="150px" />
+            <RadzenDataGridColumn TItem="Customer" Property="Email" Title="Email" Width="200px" />
+            <RadzenDataGridColumn TItem="Customer" Property="Phone" Title="Phone" Width="150px" />
+            <RadzenDataGridColumn TItem="Customer" Property="City" Title="City" Width="120px" />
+            <RadzenDataGridColumn TItem="Customer" Property="Country" Title="Country" Width="120px" />
 
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="FirstName"
-                                  Title="First Name"
-                                  Width="150px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="LastName"
-                                  Title="Last Name"
-                                  Width="150px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="Email"
-                                  Title="Email"
-                                  Width="200px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="Phone"
-                                  Title="Phone"
-                                  Width="150px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="City"
-                                  Title="City"
-                                  Width="120px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="Country"
-                                  Title="Country"
-                                  Width="120px" />
-
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="DateOfBirth"
-                                  Title="Date of Birth"
-                                  Width="150px">
+            <RadzenDataGridColumn TItem="Customer" Property="DateOfBirth" Title="Date of Birth" Width="150px">
                 <Template Context="customer">
                     @(customer.DateOfBirth?.ToString("dd/MM/yyyy") ?? "-")
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="IdentityNumber"
-                                  Title="Identity Number"
-                                  Width="150px" />
+            <RadzenDataGridColumn TItem="Customer" Property="IdentityNumber" Title="Identity Number" Width="150px" />
 
-            <RadzenDataGridColumn TItem="Customer"
-                                  Property="CreatedAt"
-                                  Title="Registered"
-                                  Width="180px">
+            <RadzenDataGridColumn TItem="Customer" Property="CreatedAt" Title="Registered" Width="180px">
                 <Template Context="customer">
                     @customer.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="Customer"
-                                  Title="Reservations"
-                                  Width="120px"
-                                  Sortable="false"
-                                  Filterable="false">
+            <RadzenDataGridColumn TItem="Customer" Title="Reservations" Width="120px" Sortable="false" Filterable="false">
                 <Template Context="customer">
                     <RadzenBadge Text="@((customer.Reservations?.Count ?? 0).ToString())"
                                  BadgeStyle="BadgeStyle.Info" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Customer" Title="Actions" Width="180px" Sortable="false" Filterable="false">
+                <Template Context="customer">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
+                        <RadzenButton Icon="edit"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Warning"
+                                      Click="@(()=> _navigationManager.NavigateTo($"/customers/edit/{customer.Id}"))" />
+
+                        <RadzenButton Icon="delete"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Click="@(() => DeleteCustomer(customer.Id, $"{customer.FirstName} {customer.LastName}"))" />
+                    </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -93,7 +78,7 @@
 </RadzenStack>
 
 @code {
-    private List<Customer> customers = new();
+    private List<Customer> Items = new List<Customer>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,6 +87,27 @@
 
     private async Task LoadCustomers()
     {
-        customers = await CustomerService.GetAllCustomersAsync();
+        Items = await _customerService.GetAllCustomersAsync();
+    }
+
+
+    private async Task DeleteCustomer(int id, string fullName)
+    {
+        var confirmed = await _dialogService.Confirm(
+            $"Are you sure you want to delete {fullName}?",
+            "Delete Customer",
+            new ConfirmOptions
+            {
+                OkButtonText = "Yes",
+                CancelButtonText = "No"
+            });
+
+        if (confirmed == true)
+        {
+            await _customerService.DeleteCustomerAsync(id);
+            await LoadCustomers();
+
+            _jsRuntime.ToastrSuccess("Customer deleted successfully.");
+        }
     }
 }
