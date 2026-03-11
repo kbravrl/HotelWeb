@@ -83,7 +83,7 @@
                 .ToList();
 
             _recentHousekeepingTasks = tasks
-                .OrderByDescending(t => t.CompletedAt ?? t.CreatedAt)
+                .OrderByDescending(t => t.CreatedAt)
                 .Take(10)
                 .ToList();
 

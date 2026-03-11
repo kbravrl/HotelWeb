@@ -100,7 +100,7 @@
                                   Title="Completed"
                                   Width="180px">
                 <Template Context="task">
-                    @(task.CompletedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                    @(task.CompletedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
                 </Template>
             </RadzenDataGridColumn>
 

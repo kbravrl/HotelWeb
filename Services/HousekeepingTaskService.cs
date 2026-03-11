@@ -40,9 +40,7 @@ public class HousekeepingTaskService(
         existingTask.RoomId = task.RoomId;
         existingTask.AssignedToEmployeeId = task.AssignedToEmployeeId;
         existingTask.Status = task.Status;
-
-        if (task.CompletedAt.HasValue)
-            existingTask.CompletedAt = task.CompletedAt;
+        existingTask.CompletedAt = task.CompletedAt;
 
         taskRepo.Update(existingTask);
         await taskRepo.SaveChangesAsync();

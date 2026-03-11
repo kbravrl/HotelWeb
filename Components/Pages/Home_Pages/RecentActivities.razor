@@ -125,7 +125,7 @@
                     ? $"{task.AssignedToEmployee.FirstName} {task.AssignedToEmployee.LastName}"
                     : "Atanmamış";
                 var description = $"Oda {task.Room?.RoomNumber ?? "?"} - {employeeName}";
-                var time = task.CompletedAt ?? task.CreatedAt;
+                var time = task.CreatedAt;
                 _housekeepingActivities.Add((icon, color, action, description, time));
             }
 
