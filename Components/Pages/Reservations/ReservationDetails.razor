@@ -194,32 +194,7 @@ else
                                             </RadzenColumn>
                                         }
 
-                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City) || !string.IsNullOrWhiteSpace(Reservation.Customer.Country))
-                                        {
-                                            <RadzenColumn Size="12">
-                                                <RadzenStack Gap="0.5rem">
-                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
-                                                        Location
-                                                    </RadzenText>
-                                                    <RadzenText TextStyle="TextStyle.Body1">
-                                                        <RadzenIcon Icon="location_on" class="rz-mr-2" />
-                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City))
-                                                        {
-                                                            @Reservation.Customer.City
-                                                        }
-                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.City) && !string.IsNullOrWhiteSpace(Reservation.Customer.Country))
-                                                        {
-                                                            <text>, </text>
-                                                        }
-                                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.Country))
-                                                        {
-                                                            @Reservation.Customer.Country
-                                                        }
-                                                    </RadzenText>
-                                                </RadzenStack>
-                                            </RadzenColumn>
-                                        }
-
+                                      
                                         @if (Reservation.Customer.DateOfBirth.HasValue)
                                         {
                                             <RadzenColumn Size="12">

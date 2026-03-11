@@ -77,8 +77,6 @@ public static class IdentitySeed
                     LastName = "Yılmaz",
                     Email = email,
                     Phone = "+90 555 111 2233",
-                    City = "İstanbul",
-                    Country = "Türkiye",
                     DateOfBirth = new DateOnly(1990, 5, 15),
                     IdentityNumber = "12345678901"
                 };
@@ -110,8 +108,6 @@ public static class IdentitySeed
             LastName = "Yılmaz",
             Email = email,
             Phone = "+90 555 111 2233",
-            City = "İstanbul",
-            Country = "Türkiye",
             DateOfBirth = new DateOnly(1990, 5, 15),
             IdentityNumber = "12345678901"
         };

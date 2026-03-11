@@ -11,8 +11,6 @@ public class Customer
     public string LastName { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string Phone { get; set; }
-    public string? City { get; set; }
-    public string? Country { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string IdentityNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
