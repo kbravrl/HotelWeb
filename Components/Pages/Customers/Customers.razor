@@ -34,8 +34,6 @@
             <RadzenDataGridColumn TItem="Customer" Property="LastName" Title="Last Name" Width="150px" />
             <RadzenDataGridColumn TItem="Customer" Property="Email" Title="Email" Width="200px" />
             <RadzenDataGridColumn TItem="Customer" Property="Phone" Title="Phone" Width="150px" />
-            <RadzenDataGridColumn TItem="Customer" Property="City" Title="City" Width="120px" />
-            <RadzenDataGridColumn TItem="Customer" Property="Country" Title="Country" Width="120px" />
 
             <RadzenDataGridColumn TItem="Customer" Property="DateOfBirth" Title="Date of Birth" Width="150px">
                 <Template Context="customer">
@@ -43,11 +41,19 @@
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="Customer" Property="IdentityNumber" Title="Identity Number" Width="150px" />
+            <RadzenDataGridColumn TItem="Customer" Property="TotalStays" Title="Total Stays" Width="120px" />
 
-            <RadzenDataGridColumn TItem="Customer" Property="CreatedAt" Title="Registered" Width="180px">
+            <RadzenDataGridColumn TItem="Customer" Title="Last Stay" Width="160px">
                 <Template Context="customer">
-                    @customer.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                    @(customer.LastStayDate?.ToString("dd/MM/yyyy") ?? "-")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Customer" Property="LoyaltyLevel" Title="Loyalty" Width="120px" />
+
+            <RadzenDataGridColumn TItem="Customer" Title="Preferences" Width="220px">
+                <Template Context="customer">
+                    @(string.IsNullOrWhiteSpace(customer.Preferences) ? "-" : customer.Preferences)
                 </Template>
             </RadzenDataGridColumn>
 
@@ -55,6 +61,12 @@
                 <Template Context="customer">
                     <RadzenBadge Text="@((customer.Reservations?.Count ?? 0).ToString())"
                                  BadgeStyle="BadgeStyle.Info" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="Customer" Property="CreatedAt" Title="Registered" Width="180px">
+                <Template Context="customer">
+                    @customer.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                 </Template>
             </RadzenDataGridColumn>
 
@@ -73,6 +85,7 @@
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
+
         </Columns>
     </RadzenDataGrid>
 </RadzenStack>

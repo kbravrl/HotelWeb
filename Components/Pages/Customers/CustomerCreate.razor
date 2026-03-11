@@ -100,17 +100,6 @@
                                       ShowTime="false" />
                 </RadzenColumn>
 
-                <RadzenColumn Size="12">
-                    <RadzenText TextStyle="TextStyle.Overline"
-                                class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
-                        Identity Number *
-                    </RadzenText>
-                    <RadzenTextBox Style="width: 100%;"
-                                   @bind-Value="Customer.IdentityNumber"
-                                   Name="IdentityNumber"
-                                   MaxLength="50" />
-                    <RadzenRequiredValidator Component="IdentityNumber" Text="Required" />
-                </RadzenColumn>
             </RadzenRow>
         </RadzenCard>
 

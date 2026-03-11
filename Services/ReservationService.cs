@@ -7,7 +7,8 @@ namespace HotelWeb.Services;
 public class ReservationService(
     IReservationRepository reservationRepo,
     IHousekeepingTaskRepository taskRepo,
-    IRoomRepository roomRepo
+    IRoomRepository roomRepo,
+    ICustomerRepository customerRepo
 ) : IReservationService
 {
     public Task<List<Reservation>> GetAllAsync()
@@ -188,6 +189,29 @@ public class ReservationService(
             RoomId = res.RoomId
         });
 
+        if (res.CustomerId != 0)
+        {
+            var customer = await customerRepo.GetByIdAsync(res.CustomerId);
+
+            if (customer != null)
+            {
+                customer.TotalStays += 1;
+                customer.LastStayDate = DateTime.UtcNow;
+                customer.LoyaltyLevel = CalculateLoyaltyLevel(customer.TotalStays);
+            }
+        }
+
         await reservationRepo.SaveChangesAsync();
+    }
+
+    private static LoyaltyLevel CalculateLoyaltyLevel(int totalStays)
+    {
+        return totalStays switch
+        {
+            >= 20 => LoyaltyLevel.Platinum,
+            >= 10 => LoyaltyLevel.Gold,
+            >= 5 => LoyaltyLevel.Silver,
+            _ => LoyaltyLevel.Standard
+        };
     }
 }

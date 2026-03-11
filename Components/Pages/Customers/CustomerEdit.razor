@@ -125,13 +125,23 @@ else
                     <RadzenColumn Size="12">
                         <RadzenText TextStyle="TextStyle.Overline"
                                     class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">
-                            Identity Number *
+                            Preferences
                         </RadzenText>
-                        <RadzenTextBox Style="width: 100%;"
-                                       @bind-Value="Customer.IdentityNumber"
-                                       Name="IdentityNumber"
-                                       MaxLength="50" />
-                        <RadzenRequiredValidator Component="IdentityNumber" Text="Required" />
+                        <RadzenTextArea Style="width: 100%;"
+                                        @bind-Value="Customer.Preferences"
+                                        Rows="4"
+                                        MaxLength="500" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeSM="6">
+                        <RadzenText TextStyle="TextStyle.Overline"
+                                    class="rz-color-on-primary-light rz-display-flex rz-mt-2 rz-mb-0">
+                            Loyalty Level
+                        </RadzenText>
+                        <RadzenDropDown TValue="LoyaltyLevel"
+                                        Data="@LoyaltyLevels"
+                                        @bind-Value="Customer.LoyaltyLevel"
+                                        Style="width:100%" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
@@ -159,6 +169,7 @@ else
     [Parameter] public int Id { get; set; }
 
     private Customer? Customer { get; set; }
+    private IEnumerable<LoyaltyLevel> LoyaltyLevels => Enum.GetValues<LoyaltyLevel>();
     private bool IsLoading = true;
     private bool IsSaving;
 

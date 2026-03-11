@@ -209,21 +209,6 @@ else
                                                 </RadzenStack>
                                             </RadzenColumn>
                                         }
-
-                                        @if (!string.IsNullOrWhiteSpace(Reservation.Customer.IdentityNumber))
-                                        {
-                                            <RadzenColumn Size="12">
-                                                <RadzenStack Gap="0.5rem">
-                                                    <RadzenText TextStyle="TextStyle.Overline" class="rz-color-secondary">
-                                                        Identity Number
-                                                    </RadzenText>
-                                                    <RadzenText TextStyle="TextStyle.Body1">
-                                                        <RadzenIcon Icon="badge" class="rz-mr-2" />
-                                                        @Reservation.Customer.IdentityNumber
-                                                    </RadzenText>
-                                                </RadzenStack>
-                                            </RadzenColumn>
-                                        }
                                     </RadzenRow>
                                 </RadzenStack>
                             </RadzenCard>
