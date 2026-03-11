@@ -332,7 +332,7 @@
     {
         _requiresSystemAccess =
             Model.Role == EmployeeRole.Receptionist ||
-            Model.Role == EmployeeRole.Admin;
+            Model.Role == EmployeeRole.Manager;
     }
 
     private static string GetIdentityRole(EmployeeRole role)
@@ -340,7 +340,7 @@
         return role switch
         {
             EmployeeRole.Receptionist => AppRoles.Receptionist,
-            EmployeeRole.Admin => AppRoles.Admin,
+            EmployeeRole.Manager => AppRoles.Admin,
             _ => throw new InvalidOperationException("This role does not require system access.")
         };
     }

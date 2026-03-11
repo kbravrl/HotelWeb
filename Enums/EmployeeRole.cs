@@ -4,6 +4,6 @@
     {
         Receptionist,
         Housekeeping,
-        Admin
+        Manager
     }
 }
