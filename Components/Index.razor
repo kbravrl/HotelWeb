@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using HotelWeb.Auth
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Redirecting...</PageTitle>
+
+<p>Redirecting...</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/rooms", true);
+            return;
+        }
+
+        if (user.IsInRole(AppRoles.Customer))
+        {
+            Navigation.NavigateTo("/rooms", true);
+            return;
+        }
+
+        if (user.IsInRole(AppRoles.Admin) || user.IsInRole(AppRoles.Receptionist))
+        {
+            Navigation.NavigateTo("/dashboard", true);
+            return;
+        }
+
+        Navigation.NavigateTo("/rooms", true);
+    }
+}
