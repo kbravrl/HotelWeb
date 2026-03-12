@@ -116,18 +116,17 @@
                                       Variant="Variant.Flat"
                                       Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}"))"
                                       title="View Details" />
-
-                        @if (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)
-                        {
-                            <RadzenButton Icon="edit"
-                                          ButtonStyle="ButtonStyle.Secondary"
-                                          Size="ButtonSize.Small"
-                                          Variant="Variant.Flat"
-                                          Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}/edit"))"
-                                          title="Edit" />
-                        }
-
                         <AuthorizeView Roles="@($"{AppRoles.Admin},{AppRoles.Receptionist}")">
+                            @if (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)
+                            {
+                                <RadzenButton Icon="edit"
+                                              ButtonStyle="ButtonStyle.Secondary"
+                                              Size="ButtonSize.Small"
+                                              Variant="Variant.Flat"
+                                              Click="@(() => _navigationManager.NavigateTo($"/reservations/{r.Id}/edit"))"
+                                              title="Edit" />
+                            }
+                        
                             @if (r.Status == ReservationStatus.Pending)
                             {
                                 <RadzenButton Icon="check_circle"
