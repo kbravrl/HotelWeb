@@ -1,6 +1,6 @@
 ﻿@implements IDisposable
 
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -8,91 +8,126 @@
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+        <AuthorizeView Roles="Admin,Receptionist">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <RadzenIcon Icon="home" Style="margin-right:8px" />
+                        Home
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="rooms">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Rooms
+                <RadzenIcon Icon="hotel" Style="margin-right:8px" />
+                Rooms
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/reservations">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Reservations
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/housekeeping">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Housekeeping
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/customers">
-                <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Customers
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/employees">
-                <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Employees
-            </NavLink>
-        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/reservations">
+                        <RadzenIcon Icon="event_available" Style="margin-right:8px" />
+                        Reservations
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Admin,Receptionist">
+            <Authorized>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/housekeeping">
+                        <RadzenIcon Icon="cleaning_services" Style="margin-right:8px" />
+                        Housekeeping
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/customers">
+                        <RadzenIcon Icon="groups" Style="margin-right:8px" />
+                        Customers
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/employees">
+                        <RadzenIcon Icon="badge" Style="margin-right:8px" />
+                        Employees
+                    </NavLink>
+                </div>
+
+            </Authorized>
+        </AuthorizeView>
+
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        <RadzenIcon Icon="person" Style="margin-right:8px" />
+                        @context.User.Identity?.Name
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+
+                        <button type="submit" class="nav-link btn btn-link text-start">
+                            <RadzenIcon Icon="logout" Style="margin-right:8px" />
+                            Logout
                         </button>
                     </form>
                 </div>
             </Authorized>
+
             <NotAuthorized>
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        <RadzenIcon Icon="person_add" Style="margin-right:8px" />
+                        Register
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        <RadzenIcon Icon="login" Style="margin-right:8px" />
+                        Login
                     </NavLink>
                 </div>
+
             </NotAuthorized>
         </AuthorizeView>
+
     </nav>
 </div>
 
 @code {
+
     private string? currentUrl;
 
     protected override void OnInitialized()
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
+        currentUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        _navigationManager.LocationChanged += OnLocationChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        currentUrl = _navigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
     }
 
     public void Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+        _navigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

@@ -127,7 +127,17 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+
+            if (user is not null && await UserManager.IsInRoleAsync(user, AppRoles.Customer))
+            {
+                RedirectManager.RedirectTo("/rooms");
+            }
+            else
+            {
+                RedirectManager.RedirectTo("/");
+            }
         }
         else if (result.RequiresTwoFactor)
         {

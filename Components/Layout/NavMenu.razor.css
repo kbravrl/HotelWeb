@@ -109,6 +109,19 @@
     display: block;
 }
 
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+        background-color: rgba(0,0,0,0.08);
+        padding-left: 14px;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
