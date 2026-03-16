@@ -56,10 +56,30 @@ Proje, katmanlı mimari (Layered Architecture) yaklaşımı kullanılarak geliş
 
 ---
 
-# 🚀 Kurulum
+# ⚙️ Kurulum
 
-## 1️⃣ Repository'yi klonla
+## 1️⃣ Projeyi klonla
 
-```bash
-git clone https://github.com/kbravrl/HotelWeb.git
-cd HotelWeb
+git clone https://github.com/kbravrl/HotelWeb.git 
+
+---
+
+## 2️⃣ Veritabanını yapılandır
+
+appsettings.json dosyasında connection string ayarlayın:
+
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Port=5432;Database=hotel_db;Username=postgres;Password=yourpassword"
+}
+
+---
+
+## 3️⃣ Migration çalıştır
+
+dotnet ef database update
+
+---
+
+## 4️⃣ Uygulamayı çalıştır
+
+dotnet run
