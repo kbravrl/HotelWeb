@@ -6,7 +6,6 @@
 @using HotelWeb.Data
 
 @inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
@@ -20,24 +19,13 @@
 
                 <StatusMessage Message="@statusMessage" />
 
-                @if (emailConfirmationLink is not null)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" ShowIcon="true">
-                        This app does not currently have a real email sender registered. Normally this would be emailed:
-                        <RadzenLink href="@emailConfirmationLink" Text="Click here to confirm your account" Target="_blank" />
-                    </RadzenAlert>
-                }
-                else
-                {
-                    <RadzenText TextStyle="TextStyle.Body1">Please check your email to confirm your account.</RadzenText>
-                }
+                <RadzenText TextStyle="TextStyle.Body1">Please check your email to confirm your account.</RadzenText>
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
 
 @code {
-    private string? emailConfirmationLink;
     private string? statusMessage;
 
     [CascadingParameter]
@@ -62,15 +50,6 @@
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             statusMessage = "Error finding user for unspecified email";
-        }
-        else if (EmailSender is IdentityNoOpEmailSender)
-        {
-            var userId = await UserManager.GetUserIdAsync(user);
-            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            emailConfirmationLink = NavigationManager.GetUriWithQueryParameters(
-                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
         }
     }
 }
