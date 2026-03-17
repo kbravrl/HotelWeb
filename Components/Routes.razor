@@ -1,9 +1,16 @@
-﻿@using HotelWeb.Components.Account.Shared
+@using HotelWeb.Components.Account.Shared
 <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                <RedirectToLogin />
+            <NotAuthorized Context="routeAuthContext">
+                <AuthorizeView>
+                    <Authorized Context="authorizedContext">
+                        <RedirectToAccessDenied />
+                    </Authorized>
+                    <NotAuthorized Context="notAuthorizedContext">
+                        <RedirectToLogin />
+                    </NotAuthorized>
+                </AuthorizeView>
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />

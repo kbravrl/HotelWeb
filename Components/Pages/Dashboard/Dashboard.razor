@@ -1,4 +1,5 @@
 @page "/dashboard"
+@attribute [Authorize(Roles = "Admin,Receptionist")]
 
 @inject IRoomService RoomService
 @inject IReservationService ReservationService
@@ -102,7 +103,5 @@
         {
             _loading = false;
         }
-    }
-}
     }
 }
