@@ -1,34 +1,57 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @using HotelWeb.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
 
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
-    </li>
-    @if (hasExternalLogins)
-    {
-        <li class="nav-item">
-            <NavLink class="nav-link" href="Account/Manage/ExternalLogins">External logins</NavLink>
-        </li>
-    }
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Passkeys">Passkeys</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
-    </li>
-</ul>
+<RadzenCard Variant="Variant.Outlined" class="rz-p-2">
+    <RadzenStack Gap="0">
+        <RadzenLink Path="Account/Manage" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="person" />
+                <span>Profile</span>
+            </RadzenStack>
+        </RadzenLink>
+        <RadzenLink Path="Account/Manage/Email" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="email" />
+                <span>Email</span>
+            </RadzenStack>
+        </RadzenLink>
+        <RadzenLink Path="Account/Manage/ChangePassword" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="lock" />
+                <span>Password</span>
+            </RadzenStack>
+        </RadzenLink>
+        @if (hasExternalLogins)
+        {
+            <RadzenLink Path="Account/Manage/ExternalLogins" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenIcon Icon="link" />
+                    <span>External logins</span>
+                </RadzenStack>
+            </RadzenLink>
+        }
+        <RadzenLink Path="Account/Manage/TwoFactorAuthentication" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="security" />
+                <span>Two-factor authentication</span>
+            </RadzenStack>
+        </RadzenLink>
+        <RadzenLink Path="Account/Manage/Passkeys" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="fingerprint" />
+                <span>Passkeys</span>
+            </RadzenStack>
+        </RadzenLink>
+        <RadzenLink Path="Account/Manage/PersonalData" class="rz-navlink" style="display:block; padding: 0.5rem 0.75rem; border-radius: 4px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="folder" />
+                <span>Personal data</span>
+            </RadzenStack>
+        </RadzenLink>
+    </RadzenStack>
+</RadzenCard>
 
 @code {
     private bool hasExternalLogins;

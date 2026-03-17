@@ -1,17 +1,16 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout HotelWeb.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
+<RadzenStack Gap="1.5rem" class="rz-p-4">
+    <RadzenText TextStyle="TextStyle.H4">Manage your account</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-secondary">Change your account settings.</RadzenText>
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-lg-3">
+    <RadzenRow Gap="24px">
+        <RadzenColumn Size="12" SizeLG="3">
             <ManageNavMenu />
-        </div>
-        <div class="col-lg-9">
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeLG="9">
             @Body
-        </div>
-    </div>
-</div>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>

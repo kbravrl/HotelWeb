@@ -1,8 +1,14 @@
-﻿@page "/Account/Lockout"
+@page "/Account/Lockout"
 
 <PageTitle>Locked out</PageTitle>
 
-<header>
-    <h1 class="text-danger">Locked out</h1>
-    <p class="text-danger" role="alert">This account has been locked out, please try again later.</p>
-</header>
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="6">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4">
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H5">Locked out</RadzenText>
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" ShowIcon="true" Text="This account has been locked out, please try again later." />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>

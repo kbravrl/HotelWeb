@@ -1,4 +1,4 @@
-﻿@page "/Account/ConfirmEmail"
+@page "/Account/ConfirmEmail"
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -10,8 +10,16 @@
 
 <PageTitle>Confirm email</PageTitle>
 
-<h1>Confirm email</h1>
-<StatusMessage Message="@statusMessage" />
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="6">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4">
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H5">Confirm email</RadzenText>
+                <StatusMessage Message="@statusMessage" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private string? statusMessage;

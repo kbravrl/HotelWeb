@@ -1,4 +1,4 @@
-﻿@page "/Account/ResendEmailConfirmation"
+@page "/Account/ResendEmailConfirmation"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -14,24 +14,42 @@
 
 <PageTitle>Resend email confirmation</PageTitle>
 
-<h1>Resend email confirmation</h1>
-<h2>Enter your email.</h2>
-<hr />
-<StatusMessage Message="@message" />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email" class="form-label">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Resend</button>
-        </EditForm>
-    </div>
-</div>
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="6">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4">
+            <RadzenStack Gap="1rem">
+                <div>
+                    <RadzenText TextStyle="TextStyle.H5">Resend email confirmation</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2" class="rz-text-secondary">Enter your email to resend the confirmation link.</RadzenText>
+                </div>
+
+                <StatusMessage Message="@message" />
+
+                <EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post">
+                    <DataAnnotationsValidator />
+                    <RadzenStack Gap="1rem">
+                        <ValidationSummary class="text-danger" role="alert" />
+
+                        <RadzenFormField Text="Email" Variant="Variant.Outlined" Style="width:100%;">
+                            <RadzenTextBox @bind-Value="Input.Email"
+                                           Name="Input.Email"
+                                           Placeholder="name@example.com"
+                                           Style="width:100%;"
+                                           AutoComplete="username" />
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </RadzenFormField>
+
+                        <RadzenButton Text="Resend"
+                                     Icon="mark_email_unread"
+                                     ButtonType="ButtonType.Submit"
+                                     Size="ButtonSize.Large"
+                                     Style="width:100%;" />
+                    </RadzenStack>
+                </EditForm>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private string? message;

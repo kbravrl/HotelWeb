@@ -1,4 +1,4 @@
-﻿@page "/Account/ConfirmEmailChange"
+@page "/Account/ConfirmEmailChange"
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -11,9 +11,16 @@
 
 <PageTitle>Confirm email change</PageTitle>
 
-<h1>Confirm email change</h1>
-
-<StatusMessage Message="@message" />
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="6">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4">
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H5">Confirm email change</RadzenText>
+                <StatusMessage Message="@message" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private string? message;
@@ -54,8 +61,6 @@
             return;
         }
 
-        // In our UI email and user name are one and the same, so when we update the email
-        // we need to update the user name.
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {

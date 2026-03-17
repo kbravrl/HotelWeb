@@ -1,4 +1,4 @@
-﻿@page "/Account/Login"
+@page "/Account/Login"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -13,63 +13,119 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com" />
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <hr />
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr />
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
-</div>
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="8">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4 rz-p-md-5">
+            <RadzenRow Gap="24px">
+                
+                <RadzenColumn Size="12" SizeMD="5">
+                    <RadzenStack Gap="1rem">
+                        <RadzenIcon Icon="hotel" Style="font-size: 40px;" />
+                        
+                        <div>
+                            <RadzenText TextStyle="TextStyle.H4">Welcome</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-secondary">
+                                Sign in to manage your reservations, explore available rooms, and enjoy a seamless stay experience.
+                            </RadzenText>
+                        </div>
+
+                        <RadzenDivider />
+
+                        <RadzenStack Gap="0.75rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="bed" />
+                                <RadzenText TextStyle="TextStyle.Body2">View available rooms</RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="event_available" />
+                                <RadzenText TextStyle="TextStyle.Body2">Manage your reservations</RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="support_agent" />
+                                <RadzenText TextStyle="TextStyle.Body2">Access your guest information securely</RadzenText>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenColumn>
+
+                <RadzenColumn Size="12" SizeMD="7">
+                    <RadzenStack Gap="1rem">
+                        <div>
+                            <RadzenText TextStyle="TextStyle.H5">Sign In</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-secondary">
+                                Enter your account details to continue.
+                            </RadzenText>
+                        </div>
+
+                        <StatusMessage Message="@errorMessage" />
+
+                        <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+                            <DataAnnotationsValidator />
+
+                            <RadzenStack Gap="1rem">
+                                <ValidationSummary class="text-danger" role="alert" />
+
+                                <RadzenFormField Text="Email Address" Variant="Variant.Outlined" Style="width:100%;">
+                                    <RadzenTextBox @bind-Value="Input.Email"
+                                                   Name="Input.Email"
+                                                   Placeholder="name@example.com"
+                                                   Style="width:100%;"
+                                                   AutoComplete="username" />
+                                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                                </RadzenFormField>
+
+                                <RadzenFormField Text="Password" Variant="Variant.Outlined" Style="width:100%;">
+                                    <RadzenPassword @bind-Value="Input.Password"
+                                                   Name="Input.Password"
+                                                   Placeholder="Enter your password"
+                                                   Style="width:100%;"
+                                                   AutoComplete="current-password" />
+                                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                                </RadzenFormField>
+
+                                <RadzenRow AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                                    <RadzenColumn Size="12" SizeMD="6">
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                            <RadzenCheckBox @bind-Value="Input.RememberMe" Name="Input.RememberMe" />
+                                            <RadzenText TextStyle="TextStyle.Body2">Remember me</RadzenText>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12" SizeMD="6" class="rz-text-align-end">
+                                        <RadzenLink Path="Account/ForgotPassword" Text="Forgot password?" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenButton Text="Log in"
+                                              Icon="login"
+                                              ButtonType="ButtonType.Submit"
+                                              Size="ButtonSize.Large"
+                                              Style="width:100%;" />
+
+                                <RadzenDivider />
+
+                                <RadzenStack Gap="0.5rem">
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        Don’t have an account yet?
+                                    </RadzenText>
+
+                                    <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))"
+                                                Text="Create a new account" />
+
+                                    <RadzenLink Path="Account/ResendEmailConfirmation"
+                                                Text="Resend email confirmation" />
+                                </RadzenStack>
+                            </RadzenStack>
+                        </EditForm>
+                    </RadzenStack>
+                </RadzenColumn>
+
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private string? errorMessage;
@@ -92,7 +148,6 @@
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
     }
@@ -106,22 +161,23 @@
         }
 
         SignInResult result;
+
         if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
         {
-            // When performing passkey sign-in, don't perform form validation.
             result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
         }
         else
         {
-            // If doing a password sign-in, validate the form.
             if (!editContext.Validate())
             {
                 return;
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            result = await SignInManager.PasswordSignInAsync(
+                Input.Email,
+                Input.Password,
+                Input.RememberMe,
+                lockoutOnFailure: false);
         }
 
         if (result.Succeeded)

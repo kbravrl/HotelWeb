@@ -1,4 +1,4 @@
-﻿@page "/Account/Register"
+@page "/Account/Register"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -19,42 +19,112 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" class="rz-mt-6 rz-px-2">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="8">
+        <RadzenCard Variant="Variant.Filled" class="rz-p-4 rz-p-md-5">
+            <RadzenRow Gap="24px">
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
-</div>
+                <RadzenColumn Size="12" SizeMD="5">
+                    <RadzenStack Gap="1rem">
+                        <RadzenIcon Icon="hotel" Style="font-size: 40px;" />
+
+                        <div>
+                            <RadzenText TextStyle="TextStyle.H4">Create Your Account</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-secondary">
+                                Join to book your stay, manage reservations, and enjoy a smooth hotel experience.
+                            </RadzenText>
+                        </div>
+
+                        <RadzenDivider />
+
+                        <RadzenStack Gap="0.75rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="person_add" />
+                                <RadzenText TextStyle="TextStyle.Body2">Create your guest account securely</RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="bed" />
+                                <RadzenText TextStyle="TextStyle.Body2">Browse rooms and plan your stay</RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="event_available" />
+                                <RadzenText TextStyle="TextStyle.Body2">Access and manage your reservations anytime</RadzenText>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenColumn>
+
+                <RadzenColumn Size="12" SizeMD="7">
+                    <RadzenStack Gap="1rem">
+                        <div>
+                            <RadzenText TextStyle="TextStyle.H5">Register</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-secondary">
+                                Fill in your details to create a new account.
+                            </RadzenText>
+                        </div>
+
+                        <StatusMessage Message="@Message" />
+
+                        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+                            <DataAnnotationsValidator />
+
+                            <RadzenStack Gap="1rem">
+                                <ValidationSummary class="text-danger" role="alert" />
+
+                                <RadzenFormField Text="Email Address" Variant="Variant.Outlined" Style="width:100%;">
+                                    <RadzenTextBox @bind-Value="Input.Email"
+                                                   Name="Input.Email"
+                                                   Placeholder="name@example.com"
+                                                   Style="width:100%;"
+                                                   AutoComplete="username" />
+                                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                                </RadzenFormField>
+
+                                <RadzenFormField Text="Password" Variant="Variant.Outlined" Style="width:100%;">
+                                    <RadzenPassword @bind-Value="Input.Password"
+                                                   Name="Input.Password"
+                                                   Placeholder="Enter your password"
+                                                   Style="width:100%;"
+                                                   AutoComplete="new-password" />
+                                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                                </RadzenFormField>
+
+                                <RadzenFormField Text="Confirm Password" Variant="Variant.Outlined" Style="width:100%;">
+                                    <RadzenPassword @bind-Value="Input.ConfirmPassword"
+                                                   Name="Input.ConfirmPassword"
+                                                   Placeholder="Re-enter your password"
+                                                   Style="width:100%;"
+                                                   AutoComplete="new-password" />
+                                    <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                                </RadzenFormField>
+
+                                <RadzenButton Text="Create account"
+                                              Icon="person_add"
+                                              ButtonType="ButtonType.Submit"
+                                              Size="ButtonSize.Large"
+                                              Style="width:100%;" />
+
+                                <RadzenDivider />
+
+                                <RadzenStack Gap="0.5rem">
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        Already have an account?
+                                    </RadzenText>
+
+                                    <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Login", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))"
+                                                Text="Sign in here" />
+                                </RadzenStack>
+                            </RadzenStack>
+                        </EditForm>
+                    </RadzenStack>
+                </RadzenColumn>
+
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;
@@ -65,7 +135,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+    private string? Message => identityErrors is null
+        ? null
+        : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     protected override void OnInitialized()
     {
@@ -96,6 +168,7 @@
             LastName = "",
             Email = Input.Email
         };
+
         DbContext.Customers.Add(customer);
         await DbContext.SaveChangesAsync();
 
@@ -104,9 +177,15 @@
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+            new Dictionary<string, object?>
+            {
+                ["userId"] = userId,
+                ["code"] = code,
+                ["returnUrl"] = ReturnUrl
+            });
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
@@ -131,7 +210,8 @@
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+            throw new InvalidOperationException(
+                $"Can't create an instance of '{nameof(ApplicationUser)}'. " +
                 $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
         }
     }
@@ -142,6 +222,7 @@
         {
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
+
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 

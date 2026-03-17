@@ -1,9 +1,9 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+@if (!string.IsNullOrEmpty(DisplayMessage))
 {
-    var statusMessageClass = DisplayMessage.StartsWith("Error") ? "danger" : "success";
-    <div class="alert alert-@statusMessageClass" role="alert">
-        @DisplayMessage
-    </div>
+    <RadzenAlert AlertStyle="@alertStyle"
+                 Text="@DisplayMessage"
+                 Variant="Variant.Flat"
+                 ShowIcon="true" />
 }
 
 @code {
@@ -16,6 +16,10 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     private string? DisplayMessage => Message ?? messageFromCookie;
+
+    private Radzen.AlertStyle alertStyle => !string.IsNullOrEmpty(DisplayMessage) && DisplayMessage.StartsWith("Error")
+        ? Radzen.AlertStyle.Danger
+        : Radzen.AlertStyle.Success;
 
     protected override void OnInitialized()
     {
