@@ -21,6 +21,8 @@ public class EmployeeRepository(ApplicationDbContext db) : IEmployeeRepository
                 .ThenInclude(t => t.Room)
             .FirstOrDefaultAsync(e => e.Id == id);
 
+    public async Task<Employee?> GetByApplicationUserIdAsync(string applicationUserId)
+        => await db.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == applicationUserId);
 
     public async Task<List<Employee>> GetCleanersAsync()
     {

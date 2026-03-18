@@ -13,6 +13,9 @@ public class EmployeeService(IEmployeeRepository repo, UserManager<ApplicationUs
     public Task<Employee?> GetEmployeeAsync(int id)
         => repo.GetByIdAsync(id);
 
+    public Task<Employee?> GetByApplicationUserIdAsync(string applicationUserId)
+        => repo.GetByApplicationUserIdAsync(applicationUserId);
+
     public Task<List<Employee>> GetCleanersAsync()
         => repo.GetCleanersAsync();
 

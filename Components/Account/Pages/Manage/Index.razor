@@ -1,91 +1,316 @@
 ﻿@page "/Account/Manage"
+@attribute [Authorize]
+@rendermode InteractiveServer
 
-@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
+@using HotelWeb.Models.InputModels
+@using HotelWeb.Models
 @using HotelWeb.Data
+@using HotelWeb.Services
+@using Radzen
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IdentityRedirectManager RedirectManager
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject UserManager<ApplicationUser> _userManager
+@inject SignInManager<ApplicationUser> _signInManager
+@inject ICustomerService _customerService
+@inject IEmployeeService _employeeService
+@inject IJSRuntime _jsRuntime
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Manage Account</PageTitle>
 
-<h3>Profile</h3>
-<StatusMessage />
+<RadzenRow JustifyContent="JustifyContent.Center" class="mt-4">
+    <RadzenColumn Size="12" SizeMD="10" SizeLG="8">
+        <RadzenCard Style="padding:24px;">
+            <RadzenStack Gap="1rem">
 
-<div class="row">
-    <div class="col-xl-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number" />
-                <label for="Input.PhoneNumber" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
-    </div>
-</div>
+                <RadzenText TextStyle="TextStyle.H4">Manage Account</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" class="text-muted">
+                    View and update your account information.
+                </RadzenText>
+
+                @if (isLoading)
+                {
+                    <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" ShowValue="false" />
+                    <RadzenText>Loading profile...</RadzenText>
+                }
+                else
+                {
+                    <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="ProfileForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <RadzenRow Gap="16px">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenFormField Text="First Name" Style="width:100%;">
+                <ChildContent>
+                    <RadzenTextBox @bind-Value="Input.FirstName" Name="FirstName" Style="width:100%;" />
+                </ChildContent>
+            </RadzenFormField>
+            <ValidationMessage For="@(() => Input.FirstName)" />
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenFormField Text="Last Name" Style="width:100%;">
+                <ChildContent>
+                    <RadzenTextBox @bind-Value="Input.LastName" Name="LastName" Style="width:100%;" />
+                </ChildContent>
+            </RadzenFormField>
+            <ValidationMessage For="@(() => Input.LastName)" />
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenFormField Text="Email" Style="width:100%;">
+                <ChildContent>
+                    <RadzenTextBox @bind-Value="Input.Email"
+                                   Name="Email"
+                                   Style="width:100%;"
+                                   Disabled="true" />
+                </ChildContent>
+            </RadzenFormField>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenFormField Text="Phone" Style="width:100%;">
+                <ChildContent>
+                    <RadzenTextBox @bind-Value="Input.Phone" Name="Phone" Style="width:100%;" />
+                </ChildContent>
+            </RadzenFormField>
+            <ValidationMessage For="@(() => Input.Phone)" />
+        </RadzenColumn>
+
+        @if (isCustomerUser)
+        {
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenFormField Text="Date of Birth" Style="width:100%;">
+                    <ChildContent>
+                        <RadzenDatePicker @bind-Value="dateOfBirthValue"
+                                          Name="DateOfBirth"
+                                          DateFormat="dd.MM.yyyy"
+                                          Style="width:100%;" />
+                    </ChildContent>
+                </RadzenFormField>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12">
+                <RadzenFormField Text="Preferences" Style="width:100%;">
+                    <ChildContent>
+                        <RadzenTextArea @bind-Value="Input.Preferences"
+                                        Name="Preferences"
+                                        Rows="4"
+                                        Style="width:100%;" />
+                    </ChildContent>
+                </RadzenFormField>
+                <ValidationMessage For="@(() => Input.Preferences)" />
+            </RadzenColumn>
+        }
+    </RadzenRow>
+
+    @if (isCustomerUser && currentCustomer is not null)
+    {
+        <RadzenText TextStyle="TextStyle.H6">Customer Summary</RadzenText>
+
+        <RadzenRow Gap="16px" class="mt-2">
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Variant="Variant.Outlined">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Overline">Loyalty Level</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@currentCustomer.LoyaltyLevel</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Variant="Variant.Outlined">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Overline">Total Stays</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@currentCustomer.TotalStays</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Variant="Variant.Outlined">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Overline">Created At</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@currentCustomer.CreatedAt.ToString("dd.MM.yyyy")</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="3">
+                <RadzenCard Variant="Variant.Outlined">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Overline">Last Stay Date</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            @(currentCustomer.LastStayDate?.ToString("dd.MM.yyyy") ?? "-")
+                        </RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 JustifyContent="JustifyContent.End"
+                 class="mt-4">
+        <RadzenButton ButtonType="ButtonType.Submit"
+                      Text="Save Changes"
+                      Icon="save"
+                      Style="min-width:160px;" />
+    </RadzenStack>
+</EditForm>
+                }
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
-    private ApplicationUser? user;
-    private string? username;
-    private string? phoneNumber;
+    [SupplyParameterFromForm(FormName = "ProfileForm")]
+    private InputModel Input { get; set; } = new();
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private ApplicationUser? currentUser;
+    private Customer? currentCustomer;
+    private Employee? currentEmployee;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private bool isLoading = true;
+    private bool isCustomerUser;
+    private bool isEmployeeUser;
+
+    private DateTime? dateOfBirthValue
+    {
+        get => Input.DateOfBirth.HasValue
+            ? new DateTime(Input.DateOfBirth.Value.Year, Input.DateOfBirth.Value.Month, Input.DateOfBirth.Value.Day)
+            : null;
+        set => Input.DateOfBirth = value.HasValue
+            ? DateOnly.FromDateTime(value.Value)
+            : null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
 
-        user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        if (principal.Identity is null || !principal.Identity.IsAuthenticated)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            isLoading = false;
             return;
         }
 
-        username = await UserManager.GetUserNameAsync(user);
-        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        currentUser = await _userManager.GetUserAsync(principal);
 
-        Input.PhoneNumber ??= phoneNumber;
+        if (currentUser is null)
+        {
+            isLoading = false;
+            return;
+        }
+
+        currentCustomer = await _customerService.GetByApplicationUserIdAsync(currentUser.Id);
+
+        if (currentCustomer is not null)
+        {
+            isCustomerUser = true;
+
+            Input = new InputModel
+            {
+                FirstName = currentCustomer.FirstName,
+                LastName = currentCustomer.LastName,
+                Email = currentCustomer.Email,
+                Phone = currentCustomer.Phone,
+                DateOfBirth = currentCustomer.DateOfBirth,
+                Preferences = currentCustomer.Preferences
+            };
+
+            isLoading = false;
+            return;
+        }
+
+        currentEmployee = await _employeeService.GetByApplicationUserIdAsync(currentUser.Id);
+
+        if (currentEmployee is not null)
+        {
+            isEmployeeUser = true;
+
+            Input = new InputModel
+            {
+                FirstName = currentEmployee.FirstName,
+                LastName = currentEmployee.LastName,
+                Email = currentUser.Email ?? string.Empty,
+                Phone = currentUser.PhoneNumber ?? string.Empty,
+                DateOfBirth = null,
+                Preferences = null
+            };
+
+            isLoading = false;
+            return;
+        }
+
+        Input = new InputModel
+        {
+            FirstName = string.Empty,
+            LastName = string.Empty,
+            Email = currentUser.Email ?? string.Empty,
+            Phone = currentUser.PhoneNumber ?? string.Empty,
+            DateOfBirth = null,
+            Preferences = null
+        };
+
+        isLoading = false;
     }
 
     private async Task OnValidSubmitAsync()
     {
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+        if (currentUser is null)
             return;
-        }
 
-        if (Input.PhoneNumber != phoneNumber)
+        try
         {
-            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
+            var newPhone = Input.Phone?.Trim();
+
+            if (currentUser.PhoneNumber != newPhone)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
-                return;
+                var setPhoneResult = await _userManager.SetPhoneNumberAsync(currentUser, newPhone);
+
+                if (!setPhoneResult.Succeeded)
+                {
+                    var errors = string.Join(", ", setPhoneResult.Errors.Select(x => x.Description));
+                    await _jsRuntime.InvokeVoidAsync("toastr.error", $"Phone update failed: {errors}");
+                    return;
+                }
             }
+
+            if (isCustomerUser && currentCustomer is not null)
+            {
+                currentCustomer.FirstName = Input.FirstName.Trim();
+                currentCustomer.LastName = Input.LastName.Trim();
+                currentCustomer.Email = Input.Email.Trim();
+                currentCustomer.Phone = newPhone ?? string.Empty;
+                currentCustomer.DateOfBirth = Input.DateOfBirth;
+                currentCustomer.Preferences = string.IsNullOrWhiteSpace(Input.Preferences)
+                    ? null
+                    : Input.Preferences.Trim();
+
+                await _customerService.UpdateCustomerAsync(currentCustomer);
+            }
+            else if (isEmployeeUser && currentEmployee is not null)
+            {
+                currentEmployee.FirstName = Input.FirstName.Trim();
+                currentEmployee.LastName = Input.LastName.Trim();
+                currentEmployee.Email = Input.Email.Trim();
+                currentEmployee.Phone = newPhone ?? string.Empty;
+
+                await _employeeService.UpdateEmployeeAsync(currentEmployee);
+            }
+
+            await _jsRuntime.InvokeVoidAsync("toastr.success", "Profile updated successfully.");
         }
-
-        await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
-    }
-
-    private sealed class InputModel
-    {
-        [Phone]
-        [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; }
+        catch (Exception ex)
+        {
+            await _jsRuntime.InvokeVoidAsync("toastr.error", $"An error occurred: {ex.Message}");
+        }
     }
 }

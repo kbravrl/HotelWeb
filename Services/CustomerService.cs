@@ -16,11 +16,8 @@ public class CustomerService(
     public Task<Customer?> GetCustomerAsync(int id)
         => repo.GetByIdAsync(id);
 
-    public async Task<Customer?> GetCustomerByApplicationUserIdAsync(string applicationUserId)
-    {
-        var customers = await repo.GetAllAsync();
-        return customers.FirstOrDefault(c => c.ApplicationUserId == applicationUserId);
-    }
+    public async Task<Customer?> GetByApplicationUserIdAsync(string applicationUserId)
+        => await repo.GetByApplicationUserIdAsync(applicationUserId);
 
     public async Task CreateCustomerAsync(Customer customer, string password)
     {

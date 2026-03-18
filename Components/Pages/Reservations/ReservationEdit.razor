@@ -203,7 +203,7 @@ else
 
                 if (!string.IsNullOrWhiteSpace(applicationUserId))
                 {
-                    var customer = await _customerService.GetCustomerByApplicationUserIdAsync(applicationUserId);
+                    var customer = await _customerService.GetByApplicationUserIdAsync(applicationUserId);
 
                     if (customer == null || _reservation.CustomerId != customer.Id)
                     {

@@ -200,7 +200,7 @@
             return;
         }
 
-        var customer = await _customerService.GetCustomerByApplicationUserIdAsync(applicationUserId);
+        var customer = await _customerService.GetByApplicationUserIdAsync(applicationUserId);
 
         if (customer == null)
         {

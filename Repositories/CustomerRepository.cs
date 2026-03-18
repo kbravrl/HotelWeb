@@ -17,6 +17,10 @@ public class CustomerRepository(ApplicationDbContext db) : ICustomerRepository
         => await db.Customers
             .FirstOrDefaultAsync(c => c.Id == id);
 
+    public async Task<Customer?> GetByApplicationUserIdAsync(string applicationUserId)
+    => await db.Customers
+        .FirstOrDefaultAsync(c => c.ApplicationUserId == applicationUserId);
+
     public async Task AddAsync(Customer customer)
     {
         await db.Customers.AddAsync(customer);
